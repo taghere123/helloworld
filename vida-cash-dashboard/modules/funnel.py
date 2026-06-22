@@ -127,7 +127,7 @@ def tabla_funnel(
                 "Pólizas": n_polizas,
                 "Pólizas/día": round(polizas_dia, 2),
                 "CVR (%)": round(cvr * 100, 2),
-                "ΔCVR (%)": round(delta_cvr, 2) if delta_cvr is not None else None,
+                "ΔCVR (%)": round(delta_cvr, 2) if delta_cvr is not None else float("nan"),
                 "PxQ/día (S/)": round(pxq_dia, 0),
                 "Prima media (S/)": round(prima_media, 0),
             }
