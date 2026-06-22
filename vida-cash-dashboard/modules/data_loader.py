@@ -4,6 +4,8 @@ import io
 
 import pandas as pd
 
+from modules.filters import enrich_leads, enrich_ventas
+
 CANALES_VIDA_CASH = [
     "VIDA_CASH_DEVOLUCION",
     "VIDA_CASH_PLUS",
@@ -31,9 +33,8 @@ def dias_transcurridos(
     Return number of days of data available for `mes`.
 
     For months in DIAS_ESTATICOS the static value is used.  For any later
-    month (e.g. the current cut-off) the value is derived from the maximum
-    day found in the raw data, so the dashboard scales automatically as
-    Carlos replaces the source files.
+    month the value is derived from the maximum day found in the raw data,
+    so the dashboard scales automatically as files are replaced.
     """
     if mes in DIAS_ESTATICOS:
         return DIAS_ESTATICOS[mes]
@@ -46,7 +47,14 @@ def dias_transcurridos(
             if pd.notna(val) and val > 0:
                 return int(val)
 
-    # Fall back to parsing F. venta (unreliable for ~800 rows but max-day is ok)
+    # Also try parsed date column
+    if df_leads is not None and "dia_mes_lead" in df_leads.columns:
+        sub = df_leads[df_leads["Mes"] == mes]["dia_mes_lead"]
+        val = pd.to_numeric(sub, errors="coerce").max()
+        if pd.notna(val) and val > 0:
+            return int(val)
+
+    # Fall back to parsing F. venta (unreliable for ~800 rows, but max-day is ok)
     if "F. venta" in df_ventas.columns:
         sub = df_ventas[df_ventas["Mes venta"] == mes]["F. venta"]
         fechas = pd.to_datetime(sub, errors="coerce")
@@ -67,6 +75,8 @@ def parse_data(
 
     Returns (df_leads, df_ventas, invalid_leads_count, invalid_ventas_count).
     Rows with Mes/Mes venta outside 1-12 or null are excluded and counted.
+    Date-derived columns (fecha_lead, dia_semana_lead, canal_macro, etc.) are
+    added via enrich_leads / enrich_ventas.
     """
     if isinstance(leads_bytes, bytes):
         leads_bytes = io.BytesIO(leads_bytes)
@@ -85,6 +95,7 @@ def parse_data(
     df_leads["tipo_canal"] = df_leads["Canal"].map(
         lambda c: "vida_cash" if c in CANALES_VIDA_CASH else "endosos"
     )
+    df_leads = enrich_leads(df_leads)
 
     # ── Ventas ─────────────────────────────────────────────────────────────────
     raw_ventas = pd.read_excel(ventas_bytes, engine="openpyxl")
@@ -103,5 +114,6 @@ def parse_data(
     )
     # Prima anual — always recalculate, never trust a pre-existing column
     df_ventas["Prima_Anual"] = df_ventas["Prima"] * df_ventas["Frecuencia"]
+    df_ventas = enrich_ventas(df_ventas)
 
     return df_leads, df_ventas, invalid_leads, invalid_ventas
