@@ -66,6 +66,18 @@ def dias_transcurridos(
     return fallback.get(mes, 30)
 
 
+def _safe_numeric(series: pd.Series) -> pd.Series:
+    """
+    Coerce a column to numeric, handling non-scalar cells (lists, dicts) that
+    openpyxl produces from merged/formula cells — pd.to_numeric rejects them
+    in pandas 2.x.
+    """
+    cleaned = series.map(
+        lambda x: x if isinstance(x, (int, float, str, type(None))) else None
+    )
+    return pd.to_numeric(cleaned, errors="coerce")
+
+
 def parse_data(
     leads_bytes: bytes | io.BytesIO,
     ventas_bytes: bytes | io.BytesIO,
@@ -85,7 +97,7 @@ def parse_data(
 
     # ── Leads ──────────────────────────────────────────────────────────────────
     raw_leads = pd.read_excel(leads_bytes, engine="openpyxl")
-    raw_leads["Mes"] = pd.to_numeric(raw_leads["Mes"], errors="coerce")
+    raw_leads["Mes"] = _safe_numeric(raw_leads["Mes"])
     mask_valid = raw_leads["Mes"].notna() & raw_leads["Mes"].between(1, 12)
     invalid_leads = int((~mask_valid).sum())
 
@@ -99,7 +111,7 @@ def parse_data(
 
     # ── Ventas ─────────────────────────────────────────────────────────────────
     raw_ventas = pd.read_excel(ventas_bytes, engine="openpyxl")
-    raw_ventas["Mes venta"] = pd.to_numeric(raw_ventas["Mes venta"], errors="coerce")
+    raw_ventas["Mes venta"] = _safe_numeric(raw_ventas["Mes venta"])
     mask_valid = (
         raw_ventas["Mes venta"].notna() & raw_ventas["Mes venta"].between(1, 12)
     )
