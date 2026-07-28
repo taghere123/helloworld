@@ -465,7 +465,8 @@ const AJUSTES = {
   velocidadVoz: 0.8,      // rate del TTS (0.8 = lentito para peques)
   tonoVoz: 1.1,           // pitch (un poco agudo, suena mas amable)
   msAutoAvance: 1500,     // espera antes de pasar de tarjeta al acertar
-  msEscuchaMic: 7000,     // corte de seguridad del microfono
+  msEscuchaMic: 12000,    // cuanto tiempo total escucha el microfono
+  reintentosMic: 2,       // reintentos si el peque tarda en hablar
   distanciaMax: 2         // tolerancia de Levenshtein (mas alto = mas permisivo)
 };
 
@@ -679,47 +680,90 @@ function desbloquearVoz(){
    3) MICROFONO — SpeechRecognition con deteccion de soporte
    ================================================================ */
 const ReconocedorVoz = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-let reconocedor = null;
+let reconocedor = null;        // instancia viva: se crea una nueva en cada intento
+let temporizadorMic = null;    // corte de seguridad de toda la escucha
+let intentosMic = 0;           // reintentos dentro de una misma escucha
+let motivoSinMic = "";         // por que no hay micro (para el mensajito de abajo)
+
+/* El microfono SOLO funciona en paginas seguras: https:// , localhost, o el
+   archivo abierto directamente. Si sirves el juego por http:// desde otro
+   ordenador -por ejemplo http://192.168.1.10:8080 abierto en el iPad- el
+   navegador corta el microfono. Lo detectamos antes de enseñar el boton para
+   no dejar al peque tocando un boton que nunca va a funcionar. */
+function paginaSegura(){
+  return window.isSecureContext !== false;
+}
 
 function prepararMic(){
-  // sin API => escondemos el boton y dejamos SOLO el de tocar. Nunca bloquea el juego.
-  if (!ReconocedorVoz){ estado.micOk = false; return false; }
-  try{
-    reconocedor = new ReconocedorVoz();
-    reconocedor.lang = "en-US";
-    reconocedor.continuous = false;
-    reconocedor.interimResults = true;    // aprovechamos resultados parciales
-    reconocedor.maxAlternatives = 5;      // mas opciones = mas posibilidades de acertar
-    estado.micOk = true;
-    return true;
-  }catch(e){
-    reconocedor = null; estado.micOk = false; return false;
-  }
+  estado.micOk = false;
+  if (!ReconocedorVoz){ motivoSinMic = "sin-api"; return false; }   // navegador sin la API
+  if (!paginaSegura()){ motivoSinMic = "inseguro"; return false; }  // http:// sin cifrar
+  motivoSinMic = "";
+  estado.micOk = true;
+  return true;
 }
+
+/* una instancia nueva por intento: tras un abort() varios navegadores
+   (Chrome el primero) dejan la anterior en un estado del que ya no arranca */
+function crearReconocedor(){
+  if (!ReconocedorVoz) return null;
+  try{
+    const r = new ReconocedorVoz();
+    r.lang = "en-US";
+    r.continuous = false;
+    r.interimResults = true;    // aprovechamos resultados parciales
+    r.maxAlternatives = 5;      // mas opciones = mas posibilidades de acertar
+    return r;
+  }catch(e){ return null; }
+}
+
+const NOTAS_MIC = {
+  "inseguro": "🎤 El micrófono necesita una página https",
+  "permiso":  "🎤 El micrófono está bloqueado en este navegador",
+  "sin-api":  "🎤 El micrófono no está disponible en este dispositivo"
+};
 
 function pintarMic(){
   const btn = $("#btnMic"), nota = $("#notaMic");
-  if (estado.micOk){ btn.hidden = false; nota.hidden = true; }
-  else { btn.hidden = true; nota.hidden = false; }
+  if (estado.micOk){ btn.hidden = false; nota.hidden = true; return; }
+  btn.hidden = true;
+  nota.hidden = false;
+  nota.textContent = NOTAS_MIC[motivoSinMic] || NOTAS_MIC["sin-api"];
+}
+
+/* suelta la instancia actual sin dejar callbacks sueltos */
+function soltarReconocedor(){
+  if (!reconocedor) return;
+  const r = reconocedor;
+  reconocedor = null;
+  try{ r.onresult = r.onerror = r.onend = null; }catch(e){}
+  try{ r.abort(); }catch(e){
+    try{ r.stop(); }catch(e2){}
+  }
 }
 
 /* apaga el micro pase lo que pase */
 function pararMic(){
   estado.oyendo = false;
+  intentosMic = 0;
   const btn = $("#btnMic");
   if (btn) btn.classList.remove("oyendo");
   if (temporizadorMic){ clearTimeout(temporizadorMic); temporizadorMic = null; }
-  if (!reconocedor) return;
-  try{ reconocedor.abort(); }catch(e){
-    try{ reconocedor.stop(); }catch(e2){}
-  }
+  soltarReconocedor();
 }
 
-let temporizadorMic = null;
+/* el micro no va a funcionar: lo escondemos y seguimos con el boton de tocar */
+function fallarMic(motivo){
+  motivoSinMic = motivo;
+  estado.micOk = false;
+  pararMic();
+  pintarMic();
+  animo("👉 Toca ✅");
+}
 
 function escuchar(){
-  if (!estado.micOk || !reconocedor || estado.bloqueado) return;
-  if (estado.oyendo){ pararMic(); return; }   // segundo toque = cancelar
+  if (!estado.micOk || estado.bloqueado) return;
+  if (estado.oyendo){ pararMic(); animo(""); return; }   // segundo toque = cancelar
 
   const objetivo = tarjetaActual();
   if (!objetivo) return;
@@ -727,6 +771,24 @@ function escuchar(){
   // el TTS puede estar hablando (o a punto): lo callamos para no oirnos a nosotros mismos
   cancelarHablaPendiente();
   try{ if (hayTTS) window.speechSynthesis.cancel(); }catch(e){}
+
+  intentosMic = 0;
+  // corte de seguridad de TODA la escucha: en algunos moviles onend nunca llega
+  if (temporizadorMic) clearTimeout(temporizadorMic);
+  temporizadorMic = setTimeout(() => {
+    if (estado.oyendo){ pararMic(); animo("👉 Toca ✅"); }
+  }, AJUSTES.msEscuchaMic);
+
+  intentarEscucha(objetivo);
+}
+
+/* OJO: start() tiene que ejecutarse DENTRO del gesto del usuario, sin ningun
+   await por delante, o iOS lo rechaza. Por eso NO pedimos permiso con
+   getUserMedia antes: el propio start() ya saca el aviso del navegador. */
+function intentarEscucha(objetivo){
+  soltarReconocedor();
+  reconocedor = crearReconocedor();
+  if (!reconocedor){ fallarMic("sin-api"); return false; }
 
   estado.oyendo = true;
   $("#btnMic").classList.add("oyendo");
@@ -748,37 +810,38 @@ function escuchar(){
 
   reconocedor.onerror = (ev) => {
     const cod = (ev && ev.error) || "";
-    pararMic();
-    if (cod === "not-allowed" || cod === "service-not-allowed"){
-      // permiso denegado o navegador sin servicio: escondemos el mic para siempre
-      estado.micOk = false; pintarMic();
-      animo("👉 Toca ✅");
-    } else if (cod === "no-speech" || cod === "aborted"){
-      animo("");                       // silencio: ni error ni drama
-    } else {
-      animo("👉 Toca ✅");             // cualquier otro fallo: recordamos el camino alternativo
-    }
+    // permanentes: no hay permiso o el navegador no ofrece el servicio
+    if (cod === "not-allowed" || cod === "service-not-allowed"){ fallarMic("permiso"); return; }
+    // pasajeros ("no-speech", "network", "audio-capture", "aborted"): NO escondemos
+    // el boton, que un fallo de red o un silencio no deje al peque sin microfono.
+    // De reintentar o rendirse ya se encarga onend.
   };
 
   reconocedor.onend = () => {
-    if (estado.oyendo){                 // termino solo sin acertar
-      estado.oyendo = false;
-      $("#btnMic").classList.remove("oyendo");
-      if (!estado.bloqueado) animo("👉 Toca ✅");
+    if (!estado.oyendo) return;          // ya lo paramos nosotros
+    // un peque de 4 años tarda en arrancar a hablar: le damos otra oportunidad
+    if (intentosMic < AJUSTES.reintentosMic && !estado.bloqueado){
+      intentosMic++;
+      if (intentarEscucha(objetivo)) return;
     }
+    estado.oyendo = false;
+    $("#btnMic").classList.remove("oyendo");
+    if (temporizadorMic){ clearTimeout(temporizadorMic); temporizadorMic = null; }
+    if (!estado.bloqueado) animo("👉 Toca ✅");
   };
 
   try{
     reconocedor.start();
   }catch(e){
     // start() lanza si ya estaba activo o si el navegador lo prohibe
-    pararMic();
+    estado.oyendo = false;
+    $("#btnMic").classList.remove("oyendo");
+    soltarReconocedor();
+    if (temporizadorMic){ clearTimeout(temporizadorMic); temporizadorMic = null; }
     animo("👉 Toca ✅");
-    return;
+    return false;
   }
-
-  // corte de seguridad: en algunos moviles onend nunca llega
-  temporizadorMic = setTimeout(() => { if (estado.oyendo) pararMic(); }, AJUSTES.msEscuchaMic);
+  return true;
 }
 
 /* ================================================================
@@ -1077,7 +1140,7 @@ document.addEventListener("visibilitychange", () => {
 window.__juego = {
   TEMAS, AJUSTES, estado,
   coincide, levenshtein, soundex, normalizar,
-  prepararMic, pintarMic, elegirVoz, despertarAudio, tocarNotas,
+  prepararMic, pintarMic, elegirVoz, despertarAudio, tocarNotas, paginaSegura,
   get ctxAudio(){ return ctxAudio; },
   get vozElegida(){ return vozElegida; }
 };
