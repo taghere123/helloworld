@@ -499,6 +499,31 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   50%    { transform:translateY(7px) rotate(-3.5deg) scale(1.02,.98) }
 }
 
+/* --- gestos al tocar a Blip (mandan sobre el estado de turno) --- */
+.blip.saltito .blip-todo{ animation:gestoSalto .55s var(--muelle); }
+.blip.meneito .blip-todo{ animation:gestoMeneo .6s ease-in-out; }
+.blip.aplasta .blip-todo{ animation:gestoAplasta .5s var(--muelle); }
+.blip.chispea .blip-todo{ animation:gestoSalto .55s var(--muelle); }
+.blip.chispea .blip-chispas{ opacity:1; animation:blipChispea .3s ease-in-out 3 alternate; }
+.blip.chispea .blip-destello{ animation:blipBrilla .28s ease-in-out 3 alternate; }
+@keyframes gestoSalto{
+  0%{ transform:translateY(0) scale(1,1) }
+  35%{ transform:translateY(-22px) scale(.94,1.08) }
+  70%{ transform:translateY(0) scale(1.08,.92) }
+  100%{ transform:translateY(0) scale(1,1) }
+}
+@keyframes gestoMeneo{
+  0%,100%{ transform:rotate(0) }
+  20%{ transform:rotate(-9deg) } 45%{ transform:rotate(8deg) }
+  70%{ transform:rotate(-5deg) } 88%{ transform:rotate(3deg) }
+}
+@keyframes gestoAplasta{
+  0%{ transform:scale(1,1) }
+  30%{ transform:scale(1.22,.76) translateY(6px) }
+  62%{ transform:scale(.92,1.12) translateY(-6px) }
+  100%{ transform:scale(1,1) }
+}
+
 /* ================================================================
    CELEBRACION
    ================================================================ */
@@ -534,7 +559,7 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 
 /* --- botones de la esquina superior derecha del home --- */
 #barraHome{
-  position:absolute; top:max(10px, env(safe-area-inset-top)); right:12px;
+  position:absolute; top:max(10px, env(safe-area-inset-top)); left:12px;
   display:flex; gap:var(--s2); z-index:20;
 }
 .btn-icono{
@@ -556,6 +581,16 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 #btnAjustes.cargando{ animation:cargaAjustes 1.5s linear forwards; }
 @keyframes cargaAjustes{ from{ opacity:.35; transform:scale(1) } to{ opacity:1; transform:scale(1.25) } }
 
+/* boton de musica: SIEMPRE visible, en la misma esquina de todas las
+   pantallas, para que el adulto pueda cortarla al instante */
+#btnSonido{
+  position:fixed; z-index:45;
+  top:max(10px, env(safe-area-inset-top)); right:12px;
+  width:clamp(56px,9vmin,72px); height:clamp(56px,9vmin,72px);
+  font-size:clamp(1.4rem,4vmin,1.9rem);
+}
+#btnSonido.apagado{ opacity:.55; }
+
 /* contador de pegatinas sobre el boton del album */
 #contadorAlbum{
   position:absolute; top:-4px; right:-4px;
@@ -573,7 +608,8 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   display:flex; align-items:center; gap:var(--s2);
   background:rgba(243,240,255,.94);
   backdrop-filter:blur(6px);
-  padding:var(--s2) 0;
+  /* el hueco de la derecha es para el boton de musica, que va fijo encima */
+  padding:var(--s2) clamp(78px,12vmin,100px) var(--s2) 0;
   border-radius:var(--r-full);
 }
 #cabeceraAlbum .titulo{ flex:1 1 auto; font-size:clamp(1.1rem,4.4vw,2rem); }
@@ -1020,6 +1056,9 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   <div class="blip-nombre">Blip</div>
 </div>
 
+<!-- musica de fondo: mismo sitio en todas las pantallas -->
+<button class="btn-icono" id="btnSonido" aria-label="Música">🔊</button>
+
 <div id="confeti"></div>
 
 <!-- dialogo de ajustes: solo lo abre un adulto (pulsacion larga en ⚙️) -->
@@ -1288,23 +1327,60 @@ const CATEGORIAS_PARA_ABRIR = 3;
 
 /* --- Lo que dice Blip. TODO en ingles (inmersion), pero cada frase va SIEMPRE
        acompañada de una pista visual: por eso cada linea lleva su "pista". --- */
+/* ================================================================
+   ⬇⬇⬇  FRASES DE BLIP — TODO EN INGLES, EDITABLE AQUI  ⬇⬇⬇
+
+   Cada apartado es una LISTA: el juego elige una al azar y nunca repite
+   la misma dos veces seguidas. Añade o quita lineas libremente; con una
+   sola linea tambien funciona (se dira siempre esa).
+   Cortas y calidas: las tiene que entender un peque de 4 años por el tono.
+   ================================================================ */
 const FRASES = {
-  saludo:   "Hi! I am Blip. Let's play!",
-  elige:    "Pick one!",
-  escucha:  "Listen!",
-  dilo:     "Now you say it!",
-  toca:     "Tap here!",
-  // se van rotando para que no canse
-  elogios:  ["Great job!", "Well done!", "Awesome!", "You did it!", "Yay!"],
-  animos:   ["Try again!", "Almost!", "So close!", "You can do it!"],
-  final:    "You finished! Amazing!"
+  saludo:  ["Hi! I am Blip. Let's play!", "Hello! I am Blip!", "Hi there! Let's play!"],
+  elige:   ["Pick one!", "Choose a world!", "Which one?"],
+  escucha: ["Listen!", "Here it comes!", "Listen carefully!", "Ready? Listen!", "Watch and listen!"],
+  dilo:    ["Now you say it!", "Your turn!", "Say it with me!", "You try!"],
+  toca:    ["Tap here!", "Your turn!", "Touch this one!", "Press it!"],
+  elogios: ["Well done!", "Awesome!", "You did it!", "Great job!", "Yay!",
+            "Amazing!", "Woohoo!", "Perfect!", "Super!"],
+  animos:  ["Try again!", "Almost!", "So close!", "One more time!", "You can do it!"],
+  final:   ["You finished! Amazing!", "All done! Fantastic!", "You finished it! Woohoo!"],
+  cerrado: ["Finish a few more to unlock this!", "Play a bit more to open this!"],
+  abierto: ["New worlds unlocked!", "New worlds are open!"]
+};
+
+/* ================================================================
+   ⬇⬇⬇  AUDIO — VOZ, SONIDOS DE BLIP Y AMBIENTE  ⬇⬇⬇
+   Todo lo que suena se ajusta desde aqui.
+   ================================================================ */
+const AUDIO = {
+  voz: {
+    // mas lento y un pelin agudo: suena mas calido y menos robotico
+    ritmoPalabra: 0.80,   // al decir la palabra que se aprende
+    ritmoFrase:   0.85,   // al decir las frases de Blip
+    tono:         1.25,   // pitch (1 = normal). 1.2-1.3 suena infantil
+    // voces conocidas que suenan bien, en orden de preferencia
+    preferidas: [
+      "Samantha", "Ava", "Allison", "Serena", "Karen", "Moira", "Nicky",
+      "Google US English", "Microsoft Zira", "Microsoft Aria"
+    ],
+    // pistas en el nombre que suelen indicar una voz de mas calidad
+    senalesBuenas: ["natural", "neural", "enhanced", "premium", "siri", "wavenet"]
+  },
+  // sonidos de criatura al tocar a Blip (nada de palabras)
+  criatura: { volumen: 0.20, msEntreToques: 220 },
+  // colchon de fondo: suave, sin melodia, para que no canse
+  ambiente: {
+    volumen:   0.08,   // nivel normal (muy bajo a proposito)
+    agachado:  0.30,   // a cuanto baja mientras Blip habla (30%)
+    segFundido: 1.6,   // cuanto tarda en aparecer al empezar
+    segAgachar: 0.25   // suavidad al bajar y subir
+  }
 };
 
 /* Ajustes rapidos del juego */
 const AJUSTES = {
-  velocidadPalabra: 0.8,   // ritmo del TTS al decir la palabra (lentito)
-  velocidadGuia:    0.85,  // ritmo del TTS de las frases de Blip
-  tonoVoz:          1.15,  // pitch (un poco agudo, suena mas amable)
+  msAutoAvance:     1800,  // espera antes de pasar de tarjeta al acertar
   msAutoAvance:     1800,  // espera antes de pasar de tarjeta al acertar
   msEscuchaMic:     12000, // cuanto tiempo total escucha el microfono
   reintentosMic:    2,     // reintentos si el peque tarda en hablar
@@ -1437,12 +1513,14 @@ const sonidos = {
   toque:  () => tocarNotas([[660,0,.09]], "square", .12),
   // acorde por capas: la nota base da cuerpo y las agudas el brillo
   bien:   () => {
+    agacharAmbiente(); luego(soltarAmbiente, 900);
     tocarNotas([[523.25,0,.16],[659.25,.10,.16],[783.99,.20,.34]], "triangle", .24);
     tocarNotas([[1046.5,.20,.30]], "sine", .12);
     tocarNotas([[261.63,0,.42]], "sine", .10);
   },
   otraVez:() => tocarNotas([[392,0,.14],[349.23,.12,.24]], "sine", .15),
   fiesta: () => {
+    agacharAmbiente(); luego(soltarAmbiente, 1800);
     tocarNotas([[523.25,0,.15],[659.25,.11,.15],[783.99,.22,.15],
                 [1046.5,.33,.30],[783.99,.50,.15],[1046.5,.62,.55]], "triangle", .24);
     tocarNotas([[1318.5,.33,.28],[1567.98,.62,.5]], "sine", .11);
@@ -1451,31 +1529,252 @@ const sonidos = {
 };
 
 /* ================================================================
+   1b) SONIDOS DE CRIATURA DE BLIP
+   Puro Web Audio: ni una palabra. Asi suenan igual en cualquier
+   aparato, sin depender de la calidad del TTS.
+   ================================================================ */
+
+/* rampa de tono libre: [ [frecuencia, momento], ... ] */
+function vocecilla(puntos, tipo, dur, vol){
+  const ctx = crearContextoAudio();
+  if (!ctx || ctx.state !== "running") return;
+  try{
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = tipo || "sine";
+    const t0 = ctx.currentTime;
+    o.frequency.setValueAtTime(puntos[0][0], t0);
+    puntos.slice(1).forEach(p => o.frequency.exponentialRampToValueAtTime(Math.max(40, p[0]), t0 + p[1]));
+    const v = (vol == null ? AUDIO.criatura.volumen : vol);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(v, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }catch(e){}
+}
+
+/* cada sonido va con el gesto que le pega */
+const VOCES_BLIP = [
+  { nombre:"pio",    gesto:"saltito", suena: () => {          // dos pios cortos hacia arriba
+      vocecilla([[700,0],[1150,.09]], "sine", .12);
+      luego(() => vocecilla([[900,0],[1500,.08]], "sine", .11), 130);
+  }},
+  { nombre:"gorjeo", gesto:"meneito", suena: () => {          // warble: sube y baja
+      vocecilla([[520,0],[880,.10],[600,.20],[940,.30]], "triangle", .38);
+  }},
+  { nombre:"boing",  gesto:"aplasta", suena: () => {          // muelle: cae de golpe
+      vocecilla([[900,0],[220,.16]], "square", .20, AUDIO.criatura.volumen * .7);
+      luego(() => vocecilla([[500,0],[300,.10]], "square", .12, AUDIO.criatura.volumen * .45), 170);
+  }},
+  { nombre:"bloop",  gesto:"saltito", suena: () => {          // burbuja que sube
+      vocecilla([[260,0],[820,.14]], "sine", .18);
+  }},
+  { nombre:"risita", gesto:"chispea", suena: () => {          // risa: cuatro notas con vaiven
+      [0, 90, 175, 255].forEach((ms, i) => {
+        const nota = () => vocecilla([[760 + i*70, 0],[640 + i*70, .06]], "triangle", .09, AUDIO.criatura.volumen * .8);
+        if (ms === 0) nota();          // la primera al instante: el toque se nota ya
+        else luego(nota, ms);
+      });
+  }}
+];
+
+let ultimoToqueBlip = 0;
+let ultimaVozBlip = "";
+
+/* Blip reacciona al toque: sonido + gesto. Nunca habla aqui. */
+function blipReacciona(){
+  const ahora = Date.now();
+  // sin rebotes: los toques rapidos no se amontonan en ruido
+  if (ahora - ultimoToqueBlip < AUDIO.criatura.msEntreToques) return false;
+  ultimoToqueBlip = ahora;
+
+  let opciones = VOCES_BLIP.filter(v => v.nombre !== ultimaVozBlip);
+  if (!opciones.length) opciones = VOCES_BLIP;
+  const elegida = opciones[(Math.random() * opciones.length) | 0];
+  ultimaVozBlip = elegida.nombre;
+
+  agacharAmbiente();                       // que se oiga bien
+  try{ elegida.suena(); }catch(e){}
+  luego(soltarAmbiente, 700);
+
+  const b = $("#blip");
+  if (b){
+    b.classList.remove("saltito","meneito","aplasta","chispea");
+    void b.offsetWidth;                    // reinicia la animacion
+    b.classList.add(elegida.gesto);
+    luego(() => b.classList.remove(elegida.gesto), 700);
+  }
+  return true;
+}
+
+/* ================================================================
+   1c) AMBIENTE — colchon suave generado en codigo
+   Cuatro osciladores desafinados por un filtro paso bajo, con dos
+   LFO lentos. Sin melodia a proposito: una melodia que se repite
+   acaba cansando; esto es solo textura.
+   ================================================================ */
+const CLAVE_AMBIENTE = "blip_ambiente_v1";
+let ambiente = null;          // { maestro, nodos... }
+let ambienteApagado = false;  // lo decide el adulto con el boton
+let ambienteAgachado = 0;     // cuantas cosas estan sonando encima
+
+function cargarAjusteAmbiente(){
+  try{ ambienteApagado = window.localStorage.getItem(CLAVE_AMBIENTE) === "off"; }
+  catch(e){ ambienteApagado = false; }   // sin almacenamiento: suena, y punto
+}
+function guardarAjusteAmbiente(){
+  try{ window.localStorage.setItem(CLAVE_AMBIENTE, ambienteApagado ? "off" : "on"); }
+  catch(e){}                             // bloqueado: se queda solo para esta sesion
+}
+
+function crearAmbiente(){
+  if (ambiente) return ambiente;
+  const ctx = crearContextoAudio();
+  if (!ctx) return null;
+  try{
+    const maestro = ctx.createGain();
+    maestro.gain.value = 0.0001;               // entra desde el silencio
+    maestro.connect(ctx.destination);
+
+    const filtro = ctx.createBiquadFilter();
+    filtro.type = "lowpass";
+    filtro.frequency.value = 520;              // quita brillo: queda mullido
+    filtro.Q.value = 0.6;
+    filtro.connect(maestro);
+
+    // acorde abierto y desafinado a mano: suena vivo sin ser una cancion
+    const notas = [110, 164.81, 220, 329.63];
+    const osc = notas.map((hz, i) => {
+      const o = ctx.createOscillator();
+      o.type = i % 2 ? "sine" : "triangle";
+      o.frequency.value = hz * (1 + (i - 1.5) * 0.0016);   // roce lento entre voces
+      const g = ctx.createGain();
+      g.gain.value = i === 0 ? 0.5 : 0.26;
+      o.connect(g); g.connect(filtro);
+      o.start();
+      return o;
+    });
+
+    // LFO 1: respiracion del volumen (oleaje muy lento)
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 0.05;
+    const lfoG = ctx.createGain(); lfoG.gain.value = 0.35;
+    lfo.connect(lfoG); lfoG.connect(maestro.gain); lfo.start();
+
+    // LFO 2: el filtro se abre y cierra, para que evolucione
+    const lfo2 = ctx.createOscillator(); lfo2.frequency.value = 0.031;
+    const lfo2G = ctx.createGain(); lfo2G.gain.value = 190;
+    lfo2.connect(lfo2G); lfo2G.connect(filtro.frequency); lfo2.start();
+
+    ambiente = { ctx, maestro, filtro, osc, lfo, lfo2, nivel: 0 };
+    return ambiente;
+  }catch(e){ ambiente = null; return null; }
+}
+
+/* nivel objetivo ahora mismo (0 si esta apagado) */
+function nivelAmbiente(){
+  if (ambienteApagado) return 0.0001;
+  const base = AUDIO.ambiente.volumen;
+  return Math.max(0.0001, ambienteAgachado > 0 ? base * AUDIO.ambiente.agachado : base);
+}
+
+function ajustarAmbiente(segundos){
+  if (!ambiente) return;
+  try{
+    const t = ambiente.ctx.currentTime;
+    ambiente.maestro.gain.cancelScheduledValues(t);
+    ambiente.maestro.gain.setValueAtTime(Math.max(0.0001, ambiente.maestro.gain.value), t);
+    ambiente.maestro.gain.exponentialRampToValueAtTime(nivelAmbiente(), t + (segundos || 0.4));
+  }catch(e){}
+}
+
+/* arranca despues del toque del splash, nunca antes (iOS) y siempre suave */
+function arrancarAmbiente(){
+  if (ambienteApagado) return false;
+  const a = crearAmbiente();
+  if (!a) return false;
+  ajustarAmbiente(AUDIO.ambiente.segFundido);
+  return true;
+}
+
+/* baja el ambiente mientras habla Blip o suena algo importante */
+function agacharAmbiente(){
+  ambienteAgachado++;
+  ajustarAmbiente(AUDIO.ambiente.segAgachar);
+}
+function soltarAmbiente(){
+  ambienteAgachado = Math.max(0, ambienteAgachado - 1);
+  if (ambienteAgachado === 0) ajustarAmbiente(AUDIO.ambiente.segAgachar * 2.4);
+}
+function soltarAmbienteDelTodo(){
+  ambienteAgachado = 0;
+  ajustarAmbiente(AUDIO.ambiente.segAgachar * 2.4);
+}
+
+/* el boton del adulto: silencia SOLO el colchon de fondo */
+function alternarAmbiente(){
+  ambienteApagado = !ambienteApagado;
+  guardarAjusteAmbiente();
+  if (ambienteApagado){
+    ajustarAmbiente(0.4);
+  } else {
+    if (!ambiente) crearAmbiente();
+    ajustarAmbiente(AUDIO.ambiente.segFundido * 0.6);
+  }
+  pintarBotonSonido();
+  return ambienteApagado;
+}
+
+function pintarBotonSonido(){
+  const b = document.getElementById("btnSonido");
+  if (!b) return;
+  b.textContent = ambienteApagado ? "🔇" : "🔊";
+  b.setAttribute("aria-label", ambienteApagado ? "Música apagada" : "Música encendida");
+  b.classList.toggle("apagado", ambienteApagado);
+}
+
+/* ================================================================
    2) VOZ (TTS) — SpeechSynthesis con carga asincrona de voces
    ================================================================ */
 const hayTTS = typeof window.speechSynthesis !== "undefined" &&
                typeof window.SpeechSynthesisUtterance !== "undefined";
 let vozElegida = null;
 
-/* nombres de voces que suelen sonar bien y claras en ingles */
-const VOCES_PREFERIDAS = ["Samantha","Karen","Moira","Google US English","Microsoft Zira","Allison","Ava","Nicky"];
+/* Puntua cada voz del sistema y se queda con la mejor de ingles.
+   La calidad del TTS depende del aparato: esto es el techo de lo que se
+   puede hacer sin grabar audios. Suma puntos por: ser en-US, estar en la
+   lista de preferidas, tener pinta de voz "natural/neural/enhanced" y ser
+   local (en Apple las locales suelen ser las buenas). */
+function puntuarVoz(v){
+  const nombre = (v.name || "");
+  const bajo = nombre.toLowerCase();
+  const lang = (v.lang || "");
+  let p = 0;
+  if (/^en[-_]us$/i.test(lang)) p += 100;          // ingles de EEUU: lo que pide el juego
+  else if (/^en([-_]|$)/i.test(lang)) p += 45;     // cualquier otro ingles vale
+  else return -1;                                  // otros idiomas no entran
+
+  const i = AUDIO.voz.preferidas.findIndex(n => nombre.indexOf(n) !== -1);
+  if (i !== -1) p += 60 - i * 3;                   // cuanto antes en la lista, mejor
+
+  if (AUDIO.voz.senalesBuenas.some(t => bajo.indexOf(t) !== -1)) p += 35;
+  if (v.localService) p += 12;                     // sin depender de la red
+  if (/compact|espeak|robot/i.test(bajo)) p -= 40; // las que suenan a lata
+  return p;
+}
 
 function elegirVoz(){
   if (!hayTTS) return null;
   let voces = [];
   try{ voces = window.speechSynthesis.getVoices() || []; }catch(e){ voces = []; }
-  if (!voces.length) return null;                       // aun no cargaron: reintentamos luego
+  if (!voces.length) return null;                  // aun no cargaron: reintentamos luego
 
-  const enUS = voces.filter(v => /^en[-_]us$/i.test(v.lang || ""));
-  const enX  = voces.filter(v => /^en([-_]|$)/i.test(v.lang || ""));
-
-  // 1) voz preferida en-US  2) cualquier en-US  3) cualquier ingles  4) nada (usamos la del sistema)
-  for (const nombre of VOCES_PREFERIDAS){
-    const v = enUS.find(x => (x.name||"").indexOf(nombre) !== -1) ||
-              enX.find(x => (x.name||"").indexOf(nombre) !== -1);
-    if (v) return v;
+  let mejor = null, mejorP = -1;
+  for (const v of voces){
+    let p;
+    try{ p = puntuarVoz(v); }catch(e){ p = -1; }
+    if (p > mejorP){ mejorP = p; mejor = v; }
   }
-  return enUS[0] || enX[0] || null;
+  return mejorP >= 0 ? mejor : null;               // si no hay ingles, la del sistema
 }
 
 function cargarVoces(){
@@ -1538,7 +1837,8 @@ function decir(texto, pista, opciones){
   colaVoz.push({
     texto: texto,
     pista: pista,
-    ritmo: o.ritmo || AJUSTES.velocidadGuia,
+    ritmo: o.ritmo || AUDIO.voz.ritmoFrase,
+    tono: o.tono || AUDIO.voz.tono,
     alEmpezar: o.alEmpezar || null,
     alTerminar: o.alTerminar || null
   });
@@ -1553,10 +1853,12 @@ function siguienteEnCola(){
 
   // 1) PRIMERO la pista visual, para que se vea aunque no haya voz
   aplicarPista(item.pista);
+  agacharAmbiente();          // el colchon baja: la voz manda
   if (item.alEmpezar) { try{ item.alEmpezar(); }catch(e){} }
   registroVoz.push({ texto: item.texto, pista: item.pista, blip: estadoBlipActual });
 
   const seguir = () => {
+    soltarAmbiente();         // y vuelve a subir al acabar la frase
     if (item.alTerminar) { try{ item.alTerminar(); }catch(e){} }
     siguienteEnCola();
   };
@@ -1571,9 +1873,14 @@ function siguienteEnCola(){
   try{
     const u = new SpeechSynthesisUtterance(item.texto);
     if (!vozElegida) cargarVoces();
-    if (vozElegida){ u.voice = vozElegida; u.lang = vozElegida.lang || "en-US"; }
-    else { u.lang = "en-US"; }        // sin voz inglesa: al menos pedimos el idioma
-    u.rate = item.ritmo; u.pitch = AJUSTES.tonoVoz; u.volume = 1;
+    // Primero lo que nunca falla: idioma, ritmo y tono.
+    u.lang = (vozElegida && vozElegida.lang) || "en-US";
+    u.rate = item.ritmo;
+    u.pitch = (item.tono || AUDIO.voz.tono);
+    u.volume = 1;
+    // La voz va aparte: si el navegador rechaza esa voz, antes la excepcion
+    // se llevaba por delante toda la prosodia y la frase salia plana.
+    if (vozElegida){ try{ u.voice = vozElegida; }catch(e){} }
     let cerrado = false;
     const cerrar = () => { if (cerrado) return; cerrado = true; seguir(); };
     u.onend = cerrar;
@@ -1586,10 +1893,33 @@ function siguienteEnCola(){
   }
 }
 
+/* ----------------------------------------------------------------
+   PUNTOS DE ENTRADA DE LA VOZ
+   Todo lo que habla el juego pasa por aqui. Si algun dia quieres
+   sustituir el TTS por audios grabados, solo hay que cambiar estas dos
+   funciones (y el trozo que crea el SpeechSynthesisUtterance): el resto
+   del juego no se entera.
+   ---------------------------------------------------------------- */
+
+/* una PALABRA que se esta aprendiendo (mas lenta y clara) */
+function speakWord(palabra, pista, opciones){
+  const o = opciones || {};
+  o.ritmo = o.ritmo || AUDIO.voz.ritmoPalabra;
+  decir(palabra, pista, o);
+}
+
+/* una FRASE de Blip (guia, elogio, animo...). Acepta una lista y elige
+   una al azar sin repetir la anterior. */
+function speakPhrase(fraseOLista, pista, opciones){
+  const texto = Array.isArray(fraseOLista) ? frase(fraseOLista, pista || "general") : fraseOLista;
+  decir(texto, pista, opciones);
+}
+
 /* corta todo lo que se este diciendo y vacia la cola */
 function callar(){
   colaVoz.length = 0;
   vozOcupada = false;
+  soltarAmbienteDelTodo();    // si cortamos a medias, el colchon vuelve solo
   if (guardiaVoz){ clearTimeout(guardiaVoz); guardiaVoz = null; }
   try{ if (hayTTS) window.speechSynthesis.cancel(); }catch(e){}
   alCallar();
@@ -1788,7 +2118,7 @@ function fallarMic(motivo){
   pararMic();
   pintarMic();
   // el camino alternativo tiene que quedar señalado, no solo dicho
-  decir(FRASES.toca, "listo");
+  speakPhrase(FRASES.toca, "listo");
 }
 
 function escuchar(){
@@ -1871,7 +2201,7 @@ function intentarEscucha(objetivo){
     $("#btnMic").classList.remove("oyendo");
     soltarReconocedor();
     if (temporizadorMic){ clearTimeout(temporizadorMic); temporizadorMic = null; }
-    decir(FRASES.toca, "listo");
+    speakPhrase(FRASES.toca, "listo");
     return false;
   }
   return true;
@@ -2183,7 +2513,7 @@ function avisarCerrado(boton){
   sonidos.otraVez();
   boton.classList.remove("niega"); void boton.offsetWidth; boton.classList.add("niega");
   callar();
-  decir("Finish a few more to unlock this!", "cerrado");
+  speakPhrase(FRASES.cerrado, "cerrado");
 }
 
 /* celebracion al abrirse un nivel nuevo */
@@ -2196,7 +2526,7 @@ function celebrarDesbloqueo(iNivel){
   sonidos.fiesta();
   lanzarConfeti(60);
   callar();
-  decir("New worlds unlocked!", "desbloqueo");
+  speakPhrase(FRASES.abierto, "desbloqueo");
 }
 
 /* barra de progreso: se rellena con rebote y la estrella cabalga el borde */
@@ -2268,20 +2598,20 @@ function guiarTarjeta(){
   const t = tarjetaActual();
   if (!t) return;
   callar();
-  decir(FRASES.escucha, "escuchar");
-  decir(t.en, "palabra", { ritmo: AJUSTES.velocidadPalabra });
-  if (estado.micOk) decir(FRASES.dilo, "mic");
-  else              decir(FRASES.toca, "listo");
+  speakPhrase(FRASES.escucha, "escuchar");
+  speakWord(t.en, "palabra");
+  if (estado.micOk) speakPhrase(FRASES.dilo, "mic");
+  else              speakPhrase(FRASES.toca, "listo");
 }
 
-/* repetir solo la palabra (boton 🔊 o tocando a Blip) */
+/* repetir solo la palabra (boton 🔊) */
 function repetirPalabra(){
   const t = tarjetaActual();
   if (!t) return;
   callar();
-  decir(t.en, "palabra", { ritmo: AJUSTES.velocidadPalabra });
-  if (estado.micOk) decir(FRASES.dilo, "mic");
-  else              decir(FRASES.toca, "listo");
+  speakWord(t.en, "palabra");
+  if (estado.micOk) speakPhrase(FRASES.dilo, "mic");
+  else              speakPhrase(FRASES.toca, "listo");
 }
 
 /* repite la consigna del minijuego (al tocar a Blip) */
@@ -2289,9 +2619,9 @@ function repetirConsignaMini(){
   if (!miniActivo || miniActivo.ganado) return;
   const p = miniActivo.palabra;
   callar();
-  if (miniActivo.tipo === "tocar")           decir("Touch the " + p.en + "!", "mini-opciones");
-  else if (miniActivo.tipo === "arrastrar")  decir("Drag the " + p.en + "!", "mini-objeto");
-  else if (miniActivo.tipo === "trazar")     decir("Trace the " + (p.en[0] || "O").toUpperCase() + "!", "mini-trazo");
+  if (miniActivo.tipo === "tocar")           speakPhrase("Touch the " + p.en + "!", "mini-opciones");
+  else if (miniActivo.tipo === "arrastrar")  speakPhrase("Drag the " + p.en + "!", "mini-objeto");
+  else if (miniActivo.tipo === "trazar")     speakPhrase("Trace the " + (p.en[0] || "O").toUpperCase() + "!", "mini-trazo");
   // las burbujas no llevan voz: son el descanso
 }
 
@@ -2303,8 +2633,8 @@ function fallar(){
   sonidos.otraVez();
   animo("💪");
   callar();
-  decir(frase(FRASES.animos, "animo"), "animo");
-  decir(FRASES.escucha, "escuchar");   // le recordamos por donde seguir
+  speakPhrase(FRASES.animos, "animo");
+  speakPhrase(FRASES.escucha, "escuchar");   // le recordamos por donde seguir
 }
 
 /* ================================================================
@@ -2318,8 +2648,8 @@ function empezarTema(tema){
   estado.indice = 0;
   estado.bloqueado = false;
   estado.hastaMini = tarjetasHastaMini();
-  estado.ultimoMini = "";
-  estado.minisJugados = 0;
+  // ojo: ultimoMini y minisJugados NO se reinician aqui a proposito, para que
+  // el reparto de minijuegos siga variando al cambiar de categoria
   mostrarPantalla("juego");
   pintarMic();
   pintarTarjeta();
@@ -2343,7 +2673,7 @@ function acertar(){
   animo("🎉");
   $("#tarjeta").classList.add("correcto");
   lanzarConfeti(30);
-  decir(frase(FRASES.elogios, "elogio"), "fiesta");
+  speakPhrase(FRASES.elogios, "fiesta");
 
   estado.indice++;
   estado.hastaMini--;
@@ -2386,7 +2716,7 @@ function terminarTema(){
   sonidos.fiesta();
   lanzarConfeti(80);
   luego(() => lanzarConfeti(45), 650);
-  decir(FRASES.final, "fiesta");
+  speakPhrase(FRASES.final, "fiesta");
   ponerBlip("feliz", 6000);
   // tras el confeti llega el cofre. Los botones 🏠 y 🔁 siguen debajo y
   // se pueden pulsar en todo momento: el cofre nunca encierra a nadie.
@@ -2427,10 +2757,10 @@ function saludarEnCasa(){
   if (estado.pantalla !== "home") return;   // ya no estamos en casa: ni una palabra
   if (!estado.saludado){
     estado.saludado = true;
-    decir(FRASES.saludo, "blip");
-    decir(FRASES.elige, "elige");
+    speakPhrase(FRASES.saludo, "blip");
+    speakPhrase(FRASES.elige, "elige");
   } else {
-    decir(FRASES.elige, "elige");
+    speakPhrase(FRASES.elige, "elige");
   }
 }
 
@@ -2543,7 +2873,7 @@ function ganarMini(porRescate){
   limpiarPistas();
   sonidos.bien();
   lanzarConfeti(28);
-  decir(frase(FRASES.elogios, "elogio"), "fiesta");
+  speakPhrase(FRASES.elogios, "fiesta");
   luego(() => {
     if (estado.pantalla !== "mini") return;   // se fue a casa mientras tanto
     volverDeMini();
@@ -2554,7 +2884,7 @@ function ganarMini(porRescate){
 function fallarMini(){
   sonidos.otraVez();
   callar();
-  decir(frase(FRASES.animos, "animo"), "animo");
+  speakPhrase(FRASES.animos, "animo");
 }
 
 /* devuelve el control a la tarjeta que tocaba */
@@ -2613,7 +2943,7 @@ function montarTocar(objetivo, vistas){
     z.appendChild(b);
   });
 
-  decir("Touch the " + objetivo.en + "!", "mini-opciones");
+  speakPhrase("Touch the " + objetivo.en + "!", "mini-opciones");
 }
 
 /* ---------------- b) ARRASTRA A SU SITIO ---------------- */
@@ -2686,7 +3016,7 @@ function montarArrastrar(objetivo, vistas){
   obj.addEventListener("pointerup", soltar);
   obj.addEventListener("pointercancel", soltar);
 
-  decir("Drag the " + objetivo.en + "!", "mini-objeto");
+  speakPhrase("Drag the " + objetivo.en + "!", "mini-objeto");
 }
 
 /* deteccion generosa: vale con acercarse al hueco, no hace falta puntería */
@@ -2770,7 +3100,7 @@ function montarTrazar(objetivo){
   svg.addEventListener("pointerup", fin);
   svg.addEventListener("pointercancel", fin);
 
-  decir("Trace the " + letra + "!", "mini-trazo");
+  speakPhrase("Trace the " + letra + "!", "mini-trazo");
 }
 
 /* ---------------- d) BURBUJAS (descanso, sin ingles) ---------------- */
@@ -2959,11 +3289,11 @@ function tocarPegatina(el, tema, palabra, ganada){
   if (ganada){
     el.classList.add("saluda");
     sonidos.toque();
-    decir(palabra.en, "pegatina", { ritmo: AJUSTES.velocidadPalabra });
+    speakWord(palabra.en, "pegatina");
   } else {
     el.classList.add("niega");
     sonidos.otraVez();
-    decir("Keep playing!", "bloqueada");
+    speakPhrase("Keep playing!", "bloqueada");
   }
 }
 
@@ -3013,7 +3343,7 @@ function montarCofre(tema){
   c.addEventListener("pointerdown", (ev) => { ev.preventDefault(); abrirCofre(); });
   z.appendChild(c);
 
-  decir("A surprise for you!", "cofre");
+  speakPhrase("A surprise for you!", "cofre");
   // nadie se queda mirando un cofre cerrado para siempre
   luego(() => { if (cofreActivo && cofreActivo.fase === "cerrado") abrirCofre(); }, MS_RESCATE_COFRE);
 }
@@ -3040,7 +3370,7 @@ function abrirCofre(){
       fila.appendChild(m);
     }
     z.appendChild(fila);
-    decir("Pick one!", "misterios");
+    speakPhrase("Pick one!", "misterios");
     // tampoco se queda encallado eligiendo
     luego(() => {
       if (cofreActivo && cofreActivo.fase === "eligiendo"){
@@ -3077,7 +3407,7 @@ function elegirCarta(carta){
     lanzarConfeti(26);
     ponerBlip("feliz", 3000);
     // dice la palabra de la pegatina: mas practica de escucha
-    decir(premio.palabra.en, "premio", { ritmo: AJUSTES.velocidadPalabra });
+    speakWord(premio.palabra.en, "premio");
 
     // y vuela al album
     luego(() => volarAlAlbum(premio.palabra, peg), 700);
@@ -3176,6 +3506,7 @@ let yaArranco = false;
 function arrancar(){
   if (yaArranco) return;
   yaArranco = true;
+  cargarAjusteAmbiente();
 
   // 1) Web Audio: hay que hacerlo DENTRO del gesto del usuario
   despertarAudio().then(() => { sonidos.toque(); });
@@ -3184,6 +3515,9 @@ function arrancar(){
   // 3) Microfono: solo comprobamos si existe la API (el permiso se pide al usarlo)
   prepararMic();
   pintarMic();
+  // 4) Ambiente: solo despues del toque (iOS) y entrando desde el silencio
+  pintarBotonSonido();
+  despertarAudio().then(() => { luego(arrancarAmbiente, 400); });
 
   cargarAlbum();
   pintarContadorAlbum();
@@ -3221,17 +3555,19 @@ $("#btnAlbum").addEventListener("click", () => { sonidos.toque(); abrirAlbum(); 
   });
   ["pointerup","pointerleave","pointercancel"].forEach(e => b.addEventListener(e, soltar));
 })();
+$("#btnSonido").addEventListener("click", () => { alternarAmbiente(); });
 $("#btnCancelarBorrado").addEventListener("click", cerrarDialogo);
 $("#btnConfirmarBorrado").addEventListener("click", borrarAlbum);
 $("#dialogo").addEventListener("click", (ev) => { if (ev.target.id === "dialogo") cerrarDialogo(); });
 $("#btnHomeFinal").addEventListener("click", () => { sonidos.toque(); irACasa(); });
 $("#btnOtraVez").addEventListener("click", () => { sonidos.toque(); empezarTema(estado.tema); });
 
-/* tocar a Blip = repetir la ayuda de esta pantalla */
-$("#blip").addEventListener("click", () => {
-  if (estado.pantalla === "juego") repetirPalabra();
-  else if (estado.pantalla === "home") decir(FRASES.elige, "elige");
-  else if (estado.pantalla === "mini") repetirConsignaMini();
+/* Tocar a Blip: sonidos de criatura y gesto, en TODAS las pantallas.
+   A proposito no dice ni una palabra: la voz se reserva para enseñar
+   (para repetir la palabra esta el boton 🔊). */
+$("#blip").addEventListener("pointerdown", (ev) => {
+  ev.preventDefault();
+  blipReacciona();
 });
 
 /* si la pagina se va a segundo plano, callamos todo */
@@ -3256,6 +3592,13 @@ window.__juego = {
   NIVELES, progreso, nivelAbierto, completadosEnNivel, nivelDeTema,
   recalcularDesbloqueos, marcarCategoriaCompletada, pintarHome, celebrarDesbloqueo,
   svgForma, svgCara, ponerDibujo, CATEGORIAS_PARA_ABRIR,
+  AUDIO, speakWord, speakPhrase, puntuarVoz, blipReacciona, VOCES_BLIP,
+  alternarAmbiente, arrancarAmbiente, agacharAmbiente, soltarAmbiente,
+  nivelAmbiente, CLAVE_AMBIENTE,
+  get ambienteApagado(){ return ambienteApagado; },
+  get ambienteVivo(){ return !!ambiente; },
+  get ambienteGanancia(){ return ambiente ? ambiente.maestro.gain.value : null; },
+  get ambienteOsciladores(){ return ambiente ? ambiente.osc.length : 0; },
   get desbloqueoPendiente(){ return pendienteDesbloqueo; },
   montarCofre, abrirCofre, elegirPremio, borrarAlbum, CLAVE_ALBUM,
   pegatinasGanadas, totalPegatinas,
