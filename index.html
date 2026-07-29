@@ -236,6 +236,69 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
    ================================================================ */
 #cabeceraHome{ display:flex; flex-direction:column; align-items:center; gap:var(--s1); }
 
+/* ---------- ¿quien juega? ---------- */
+#listaPerfiles{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(clamp(130px,38vw,190px), 1fr));
+  gap:clamp(var(--s2),3vw,var(--s4));
+  width:min(96vw,720px);
+}
+.perfil-btn{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--s1);
+  padding:var(--s3) var(--s2);
+  border-radius:var(--r-lg); background:var(--superficie);
+  box-shadow:0 var(--s1) 0 rgba(43,36,69,.12), 0 12px 22px rgba(43,36,69,.16);
+  animation:entrarCarta .45s var(--muelle) backwards;
+  transition:transform .1s var(--suave), box-shadow .1s var(--suave);
+  min-height:clamp(150px,26vh,220px);
+}
+.perfil-btn:active{ transform:translateY(var(--s1)); box-shadow:0 0 0 rgba(43,36,69,.12); }
+.perfil-btn .cara{ width:clamp(70px,18vw,110px); height:clamp(70px,18vw,110px); display:block; }
+.perfil-btn .cara svg{ width:100%; height:100%; display:block; }
+.perfil-btn .nombre{
+  font-family:"Fredoka","Nunito",system-ui,sans-serif; font-weight:600;
+  font-size:clamp(1rem,4vw,1.4rem); color:var(--tinta);
+}
+.perfil-btn .puntos{ font-size:clamp(.8rem,3vw,1rem); color:var(--uva); font-weight:900; }
+.perfil-btn.nuevo{ background:rgba(255,255,255,.6); border:4px dashed rgba(124,77,255,.35); box-shadow:none; }
+.perfil-btn .mas{ font-size:clamp(2.4rem,9vw,3.6rem); color:var(--uva); line-height:1; }
+
+/* creador de jugador */
+#creador{
+  position:fixed; inset:0; z-index:95; background:rgba(43,36,69,.55);
+  display:none; align-items:center; justify-content:center; padding:var(--s3);
+}
+#creador.activo{ display:flex; }
+#creador .caja{
+  background:var(--superficie); border-radius:var(--r-lg); padding:var(--s4);
+  width:min(92vw,380px); display:flex; flex-direction:column; align-items:center; gap:var(--s3);
+  box-shadow:var(--sombra-card);
+}
+#creador .previo{ width:clamp(80px,22vw,120px); height:clamp(80px,22vw,120px); }
+#creador .previo svg{ width:100%; height:100%; }
+#nombrePerfil{
+  width:100%; text-align:center; font-family:inherit; font-weight:800;
+  font-size:clamp(1.1rem,4.4vw,1.5rem); padding:var(--s2);
+  border:3px solid rgba(43,36,69,.15); border-radius:var(--r-md);
+  background:var(--lienzo); color:var(--tinta);
+}
+#creador .paleta{ display:flex; gap:var(--s2); flex-wrap:wrap; justify-content:center; }
+#creador .muestra{
+  width:44px; height:44px; border-radius:50%;
+  box-shadow:0 3px 0 rgba(43,36,69,.2);
+}
+#creador .muestra.elegida{ outline:4px solid var(--tinta); outline-offset:3px; }
+#creador .fila{ display:flex; gap:var(--s2); }
+#creador button{
+  min-height:52px; padding:0 var(--s4); border-radius:var(--r-full);
+  font-weight:900; color:#fff; background:var(--tinta-suave);
+  box-shadow:0 4px 0 rgba(43,36,69,.3);
+}
+#creador button.bien{ background:var(--menta); box-shadow:0 4px 0 var(--menta-lip); }
+#creador button:active{ transform:translateY(3px); box-shadow:none; }
+#btnPerfil{ padding:0; overflow:hidden; }
+#btnPerfil svg{ width:78%; height:78%; }
+#huecoPerfiles{ width:clamp(90px,20vmin,150px); height:clamp(100px,22vmin,165px); }
+
 #rejillaTemas{
   display:flex; flex-direction:column; gap:clamp(var(--s3),3vh,var(--s5));
   width:min(100%,780px); padding:0 var(--s1);
@@ -398,6 +461,24 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   gap:clamp(var(--s2),3vw,var(--s4));
   width:100%;
 }
+
+/* indicador de escucha continua: calmado, sin pedir que se toque nada */
+#micEstado{
+  position:absolute; top:max(10px, env(safe-area-inset-top)); right:calc(12px + clamp(56px,9vmin,72px) + 8px);
+  display:flex; align-items:center; gap:6px;
+  padding:6px 12px; border-radius:var(--r-full);
+  background:rgba(255,255,255,.8);
+  font-size:clamp(.9rem,3vw,1.15rem);
+  box-shadow:0 3px 0 rgba(43,36,69,.08);
+  z-index:18; opacity:.55; transition:opacity .3s;
+}
+#micEstado .punto{
+  width:10px; height:10px; border-radius:50%; background:var(--tinta-suave);
+}
+#micEstado.oyendo{ opacity:1; }
+#micEstado.oyendo .punto{ background:var(--fresa); animation:latidoMic 1.6s ease-in-out infinite; }
+#micEstado.destacado{ opacity:1; animation:latidoBtn 1s ease-in-out infinite; }
+@keyframes latidoMic{ 0%,100%{ transform:scale(1); opacity:1 } 50%{ transform:scale(1.5); opacity:.5 } }
 
 #animo{
   min-height:1.7em;
@@ -898,10 +979,33 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 </section>
 
 <!-- =========================================================
+     PANTALLA — ¿QUIEN JUEGA?
+     ========================================================= -->
+<section id="perfiles" class="pantalla">
+  <div class="hueco-blip" id="huecoPerfiles"></div>
+  <h2 class="titulo">👋 ¿Quién juega?</h2>
+  <div id="listaPerfiles"></div>
+</section>
+
+<!-- creador de jugador (lo usa el adulto) -->
+<div id="creador" role="dialog" aria-modal="true">
+  <div class="caja">
+    <div id="previoAvatar" class="previo"></div>
+    <input id="nombrePerfil" type="text" maxlength="14" placeholder="Nombre" aria-label="Nombre del jugador">
+    <div id="paletaAvatar" class="paleta"></div>
+    <div class="fila">
+      <button id="btnCancelarCreador">Cancelar</button>
+      <button id="btnCrearPerfil" class="bien">¡Jugar!</button>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
      PANTALLA 2 — HOME
      ========================================================= -->
 <section id="home" class="pantalla">
   <div id="barraHome">
+    <button class="btn-icono" id="btnPerfil" aria-label="Cambiar de jugador"></button>
     <button class="btn-icono" id="btnAlbum" aria-label="Álbum">📖<span id="contadorAlbum">0</span></button>
     <!-- engranaje para el adulto: hay que mantenerlo pulsado 1,5s -->
     <button class="btn-icono" id="btnAjustes" aria-label="Ajustes">⚙️</button>
@@ -931,6 +1035,9 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 <section id="juego" class="pantalla">
   <button class="esquina" id="btnCasa" aria-label="Inicio">🏠</button>
 
+  <!-- indicador de escucha: NO es un boton, solo avisa al adulto -->
+  <div id="micEstado" hidden aria-hidden="true"><span class="punto"></span>🎤</div>
+
   <div id="progreso">
     <div class="pista">
       <div class="relleno"></div>
@@ -949,10 +1056,6 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
       <span class="mano" aria-hidden="true">👇</span>
       <span class="ico">🔊</span><span class="etq">Listen</span>
       <span class="ondas" aria-hidden="true"><i></i><i></i><i></i></span>
-    </button>
-    <button class="btn mic" id="btnMic">
-      <span class="mano" aria-hidden="true">👇</span>
-      <span class="ico">🎤</span><span class="etq">Say it</span>
     </button>
     <button class="btn listo" id="btnListo">
       <span class="mano" aria-hidden="true">👇</span>
@@ -1068,7 +1171,8 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
     <p id="avisoAlmacen" hidden>⚠️ Este navegador no guarda el progreso: el álbum se borrará al cerrar la página.</p>
     <div class="fila">
       <button id="btnCancelarBorrado">Cancelar</button>
-      <button id="btnConfirmarBorrado" class="peligro">Borrar todo</button>
+      <button id="btnConfirmarBorrado" class="peligro">Borrar álbum</button>
+      <button id="btnBorrarPerfil" class="peligro">Borrar jugador</button>
     </div>
   </div>
 </div>
@@ -1119,65 +1223,103 @@ const NIVELES = [
         id: "animales", icono: "🐾", nombre: "Animals",
         color: "#FF8A3D", labio: "#D96214",
         palabras: [
-          { en: "DOG",   emoji: "🐶" },
-          { en: "CAT",   emoji: "🐱" },
-          { en: "COW",   emoji: "🐮" },
-          { en: "FISH",  emoji: "🐠" },
-          { en: "BIRD",  emoji: "🐦" },
-          { en: "LION",  emoji: "🦁" },
-          { en: "BEAR",  emoji: "🐻" },
-          { en: "FROG",  emoji: "🐸" },
-          { en: "HORSE", emoji: "🐴" },
-          { en: "DUCK",  emoji: "🦆" }
+        { en: "DOG",      emoji: "🐶" },
+        { en: "CAT",      emoji: "🐱" },
+        { en: "COW",      emoji: "🐮" },
+        { en: "FISH",     emoji: "🐠" },
+        { en: "BIRD",     emoji: "🐦" },
+        { en: "LION",     emoji: "🦁" },
+        { en: "BEAR",     emoji: "🐻" },
+        { en: "FROG",     emoji: "🐸" },
+        { en: "HORSE",    emoji: "🐴" },
+        { en: "DUCK",     emoji: "🦆" },
+        { en: "PIG",      emoji: "🐷" },
+        { en: "SHEEP",    emoji: "🐑" },
+        { en: "MONKEY",   emoji: "🐵" },
+        { en: "ELEPHANT", emoji: "🐘" },
+        { en: "TIGER",    emoji: "🐯" },
+        { en: "RABBIT",   emoji: "🐰" },
+        { en: "MOUSE",    emoji: "🐭" },
+        { en: "CHICKEN",  emoji: "🐔" },
+        { en: "BEE",      emoji: "🐝" },
+        { en: "BUTTERFLY",emoji: "🦋" },
+        { en: "SNAKE",    emoji: "🐍" },
+        { en: "TURTLE",   emoji: "🐢" },
+        { en: "PENGUIN",  emoji: "🐧" },
+        { en: "WHALE",    emoji: "🐳" }
         ]
       },
       {
         id: "colores", icono: "🎨", nombre: "Colors",
         color: "#FF4D8D", labio: "#D41F63",
-        // en este tema la tarjeta se pinta del color real
+        // la tarjeta se pinta del color real
         palabras: [
-          { en: "RED",    emoji: "🍓", fondo: "#E63946", texto: "#ffffff" },
-          { en: "BLUE",   emoji: "🫐", fondo: "#1D7FE0", texto: "#ffffff" },
-          { en: "GREEN",  emoji: "🥦", fondo: "#2FA84F", texto: "#ffffff" },
-          { en: "YELLOW", emoji: "🍋", fondo: "#FFD400", texto: "#3A2F00" },
-          { en: "PINK",   emoji: "🌸", fondo: "#FF8FC3", texto: "#4A0D2A" },
-          { en: "ORANGE", emoji: "🍊", fondo: "#FF8C1A", texto: "#3D2100" },
-          { en: "PURPLE", emoji: "🍇", fondo: "#8E44AD", texto: "#ffffff" },
-          { en: "BROWN",  emoji: "🐻", fondo: "#8B5A2B", texto: "#ffffff" },
-          { en: "BLACK",  emoji: "🐈‍⬛", fondo: "#2B2445", texto: "#ffffff" },
-          { en: "WHITE",  emoji: "☁️", fondo: "#FFFFFF", texto: "#2B2445" }
+        { en: "RED",   emoji: "🍓", fondo: "#E63946", texto: "#ffffff" },
+        { en: "BLUE",  emoji: "🫐", fondo: "#1D7FE0", texto: "#ffffff" },
+        { en: "GREEN", emoji: "🥦", fondo: "#2FA84F", texto: "#ffffff" },
+        { en: "YELLOW",emoji: "🍋", fondo: "#FFD400", texto: "#3A2F00" },
+        { en: "PINK",  emoji: "🌸", fondo: "#FF8FC3", texto: "#4A0D2A" },
+        { en: "ORANGE",emoji: "🍊", fondo: "#FF8C1A", texto: "#3D2100" },
+        { en: "PURPLE",emoji: "🍇", fondo: "#8E44AD", texto: "#ffffff" },
+        { en: "BROWN", emoji: "🐻", fondo: "#8B5A2B", texto: "#ffffff" },
+        { en: "BLACK", emoji: "🐈‍⬛", fondo: "#2B2445", texto: "#ffffff" },
+        { en: "WHITE", emoji: "☁️", fondo: "#FFFFFF", texto: "#2B2445" },
+        { en: "GREY",  emoji: "🐘", fondo: "#9AA0AE", texto: "#1F2430" }
         ]
       },
       {
         id: "numeros", icono: "🔢", nombre: "Numbers",
         color: "#29C6F5", labio: "#0B96C2",
-        // "cantidad" pinta ese numero de emojis en la tarjeta
+        // "cantidad" pinta ese numero de objetos
         palabras: [
-          { en: "ONE",   emoji: "🍎", cantidad: 1,  extra: ["1", "won"] },
-          { en: "TWO",   emoji: "🍎", cantidad: 2,  extra: ["2", "to", "too"] },
-          { en: "THREE", emoji: "🍎", cantidad: 3,  extra: ["3", "tree"] },
-          { en: "FOUR",  emoji: "🍎", cantidad: 4,  extra: ["4", "for"] },
-          { en: "FIVE",  emoji: "🍎", cantidad: 5,  extra: ["5"] },
-          { en: "SIX",   emoji: "🍎", cantidad: 6,  extra: ["6"] },
-          { en: "SEVEN", emoji: "🍎", cantidad: 7,  extra: ["7"] },
-          { en: "EIGHT", emoji: "🍎", cantidad: 8,  extra: ["8", "ate"] },
-          { en: "NINE",  emoji: "🍎", cantidad: 9,  extra: ["9"] },
-          { en: "TEN",   emoji: "🍎", cantidad: 10, extra: ["10"] }
+        { en: "ONE",      emoji: "🍎", cantidad:  1, extra: ["1", "won"] },
+        { en: "TWO",      emoji: "🍎", cantidad:  2, extra: ["2", "to", "too"] },
+        { en: "THREE",    emoji: "🍎", cantidad:  3, extra: ["3", "tree"] },
+        { en: "FOUR",     emoji: "🍎", cantidad:  4, extra: ["4", "for"] },
+        { en: "FIVE",     emoji: "🍎", cantidad:  5, extra: ["5"] },
+        { en: "SIX",      emoji: "🍎", cantidad:  6, extra: ["6"] },
+        { en: "SEVEN",    emoji: "🍎", cantidad:  7, extra: ["7"] },
+        { en: "EIGHT",    emoji: "🍎", cantidad:  8, extra: ["8", "ate"] },
+        { en: "NINE",     emoji: "🍎", cantidad:  9, extra: ["9"] },
+        { en: "TEN",      emoji: "🍎", cantidad: 10, extra: ["10"] },
+        { en: "ELEVEN",   emoji: "🍎", cantidad: 11, extra: ["11"] },
+        { en: "TWELVE",   emoji: "🍎", cantidad: 12, extra: ["12"] },
+        { en: "THIRTEEN", emoji: "🍎", cantidad: 13, extra: ["13"] },
+        { en: "FOURTEEN", emoji: "🍎", cantidad: 14, extra: ["14"] },
+        { en: "FIFTEEN",  emoji: "🍎", cantidad: 15, extra: ["15"] },
+        { en: "SIXTEEN",  emoji: "🍎", cantidad: 16, extra: ["16"] },
+        { en: "SEVENTEEN",emoji: "🍎", cantidad: 17, extra: ["17"] },
+        { en: "EIGHTEEN", emoji: "🍎", cantidad: 18, extra: ["18"] },
+        { en: "NINETEEN", emoji: "🍎", cantidad: 19, extra: ["19"] },
+        { en: "TWENTY",   emoji: "🍎", cantidad: 20, extra: ["20"] }
         ]
       },
       {
         id: "comida", icono: "🍞", nombre: "Food",
         color: "#FFC93C", labio: "#DFA100",
         palabras: [
-          { en: "MILK",   emoji: "🥛" },
-          { en: "BREAD",  emoji: "🍞" },
-          { en: "EGG",    emoji: "🥚" },
-          { en: "CAKE",   emoji: "🎂" },
-          { en: "WATER",  emoji: "💧" },
-          { en: "CHEESE", emoji: "🧀" },
-          { en: "RICE",   emoji: "🍚" },
-          { en: "SOUP",   emoji: "🍲" },
-          { en: "PIZZA",  emoji: "🍕" }
+        { en: "MILK",     emoji: "🥛" },
+        { en: "BREAD",    emoji: "🍞" },
+        { en: "EGG",      emoji: "🥚" },
+        { en: "CAKE",     emoji: "🎂" },
+        { en: "WATER",    emoji: "💧" },
+        { en: "CHEESE",   emoji: "🧀" },
+        { en: "RICE",     emoji: "🍚" },
+        { en: "SOUP",     emoji: "🍲" },
+        { en: "PIZZA",    emoji: "🍕" },
+        { en: "COOKIE",   emoji: "🍪" },
+        { en: "ICE CREAM",emoji: "🍦" },
+        { en: "CANDY",    emoji: "🍬" },
+        { en: "JUICE",    emoji: "🧃" },
+        { en: "BUTTER",   emoji: "🧈" },
+        { en: "HONEY",    emoji: "🍯" },
+        { en: "PANCAKE",  emoji: "🥞" },
+        { en: "SANDWICH", emoji: "🥪" },
+        { en: "HOT DOG",  emoji: "🌭" },
+        { en: "CHOCOLATE",emoji: "🍫" },
+        { en: "POPCORN",  emoji: "🍿" },
+        { en: "CARROT",   emoji: "🥕" },
+        { en: "CORN",     emoji: "🌽" }
         ]
       }
     ]
@@ -1190,62 +1332,94 @@ const NIVELES = [
         id: "frutas", icono: "🍓", nombre: "Fruits",
         color: "#FF5D8F", labio: "#D41F63",
         palabras: [
-          { en: "GRAPES",     emoji: "🍇" },
-          { en: "STRAWBERRY", emoji: "🍓" },
-          { en: "WATERMELON", emoji: "🍉" },
-          { en: "LEMON",      emoji: "🍋" },
-          { en: "PEAR",       emoji: "🍐" },
-          { en: "CHERRY",     emoji: "🍒" },
-          { en: "PEACH",      emoji: "🍑" },
-          { en: "MANGO",      emoji: "🥭" },
-          { en: "KIWI",       emoji: "🥝" },
-          { en: "PINEAPPLE",  emoji: "🍍" }
+        { en: "APPLE",     emoji: "🍎" },
+        { en: "BANANA",    emoji: "🍌" },
+        { en: "GRAPES",    emoji: "🍇" },
+        { en: "STRAWBERRY",emoji: "🍓" },
+        { en: "WATERMELON",emoji: "🍉" },
+        { en: "LEMON",     emoji: "🍋" },
+        { en: "PEAR",      emoji: "🍐" },
+        { en: "CHERRY",    emoji: "🍒" },
+        { en: "PEACH",     emoji: "🍑" },
+        { en: "MANGO",     emoji: "🥭" },
+        { en: "KIWI",      emoji: "🥝" },
+        { en: "PINEAPPLE", emoji: "🍍" },
+        { en: "COCONUT",   emoji: "🥥" },
+        { en: "AVOCADO",   emoji: "🥑" },
+        { en: "TOMATO",    emoji: "🍅" },
+        { en: "MELON",     emoji: "🍈" },
+        { en: "BLUEBERRY", emoji: "🫐" }
         ]
       },
       {
         id: "cuerpo", icono: "✋", nombre: "Body",
         color: "#FF8A3D", labio: "#D96214",
         palabras: [
-          { en: "EYE",    emoji: "👁️" },
-          { en: "EAR",    emoji: "👂" },
-          { en: "NOSE",   emoji: "👃" },
-          { en: "MOUTH",  emoji: "👄" },
-          { en: "HAND",   emoji: "✋" },
-          { en: "FOOT",   emoji: "🦶" },
-          { en: "ARM",    emoji: "💪" },
-          { en: "LEG",    emoji: "🦵" },
-          { en: "TOOTH",  emoji: "🦷" },
-          { en: "TONGUE", emoji: "👅" }
+        { en: "EYE",   emoji: "👁️" },
+        { en: "EAR",   emoji: "👂" },
+        { en: "NOSE",  emoji: "👃" },
+        { en: "MOUTH", emoji: "👄" },
+        { en: "HAND",  emoji: "✋" },
+        { en: "FOOT",  emoji: "🦶" },
+        { en: "ARM",   emoji: "💪" },
+        { en: "LEG",   emoji: "🦵" },
+        { en: "TOOTH", emoji: "🦷" },
+        { en: "TONGUE",emoji: "👅" },
+        { en: "HAIR",  emoji: "💇" },
+        { en: "FACE",  emoji: "😊" },
+        { en: "BONE",  emoji: "🦴" },
+        { en: "FINGER",emoji: "👆" },
+        { en: "THUMB", emoji: "👍" },
+        { en: "NAIL",  emoji: "💅" }
         ]
       },
       {
         id: "ropa", icono: "👕", nombre: "Clothes",
         color: "#7C4DFF", labio: "#5A2CD4",
         palabras: [
-          { en: "SHIRT",  emoji: "👕" },
-          { en: "PANTS",  emoji: "👖" },
-          { en: "DRESS",  emoji: "👗" },
-          { en: "SHOES",  emoji: "👟" },
-          { en: "HAT",    emoji: "🧢" },
-          { en: "SOCKS",  emoji: "🧦" },
-          { en: "COAT",   emoji: "🧥" },
-          { en: "SCARF",  emoji: "🧣" },
-          { en: "GLOVES", emoji: "🧤" }
+        { en: "SHIRT",   emoji: "👕" },
+        { en: "PANTS",   emoji: "👖" },
+        { en: "DRESS",   emoji: "👗" },
+        { en: "SHOES",   emoji: "👟" },
+        { en: "HAT",     emoji: "🧢" },
+        { en: "SOCKS",   emoji: "🧦" },
+        { en: "COAT",    emoji: "🧥" },
+        { en: "SCARF",   emoji: "🧣" },
+        { en: "GLOVES",  emoji: "🧤" },
+        { en: "BOOTS",   emoji: "🥾" },
+        { en: "SANDAL",  emoji: "🩴" },
+        { en: "CROWN",   emoji: "👑" },
+        { en: "GLASSES", emoji: "👓" },
+        { en: "RING",    emoji: "💍" },
+        { en: "BAG",     emoji: "👜" },
+        { en: "UMBRELLA",emoji: "☂️" },
+        { en: "TIE",     emoji: "👔" },
+        { en: "BACKPACK",emoji: "🎒" }
         ]
       },
       {
         id: "vehiculos", icono: "🚗", nombre: "Vehicles",
         color: "#3DD68C", labio: "#21A468",
         palabras: [
-          { en: "CAR",        emoji: "🚗" },
-          { en: "BUS",        emoji: "🚌" },
-          { en: "BIKE",       emoji: "🚲" },
-          { en: "TRAIN",      emoji: "🚂" },
-          { en: "PLANE",      emoji: "✈️" },
-          { en: "BOAT",       emoji: "⛵" },
-          { en: "TRUCK",      emoji: "🚚" },
-          { en: "TAXI",       emoji: "🚕" },
-          { en: "HELICOPTER", emoji: "🚁" }
+        { en: "CAR",       emoji: "🚗" },
+        { en: "BUS",       emoji: "🚌" },
+        { en: "BIKE",      emoji: "🚲" },
+        { en: "TRAIN",     emoji: "🚂" },
+        { en: "PLANE",     emoji: "✈️" },
+        { en: "BOAT",      emoji: "⛵" },
+        { en: "TRUCK",     emoji: "🚚" },
+        { en: "TAXI",      emoji: "🚕" },
+        { en: "HELICOPTER",emoji: "🚁" },
+        { en: "MOTORBIKE", emoji: "🏍️" },
+        { en: "TRACTOR",   emoji: "🚜" },
+        { en: "AMBULANCE", emoji: "🚑" },
+        { en: "FIRE TRUCK",emoji: "🚒" },
+        { en: "POLICE CAR",emoji: "🚓" },
+        { en: "SHIP",      emoji: "🚢" },
+        { en: "SCOOTER",   emoji: "🛴" },
+        { en: "SKATEBOARD",emoji: "🛹" },
+        { en: "SUBWAY",    emoji: "🚇" },
+        { en: "CANOE",     emoji: "🛶" }
         ]
       }
     ]
@@ -1258,59 +1432,75 @@ const NIVELES = [
         id: "espacio", icono: "🚀", nombre: "Space",
         color: "#8367C7", labio: "#5A2CD4",
         palabras: [
-          { en: "STAR",   emoji: "⭐" },
-          { en: "MOON",   emoji: "🌙" },
-          { en: "SUN",    emoji: "☀️" },
-          { en: "ROCKET", emoji: "🚀" },
-          { en: "PLANET", emoji: "🪐" },
-          { en: "ALIEN",  emoji: "👽" },
-          { en: "EARTH",  emoji: "🌍" },
-          { en: "COMET",  emoji: "☄️" }
+        { en: "STAR",     emoji: "⭐" },
+        { en: "MOON",     emoji: "🌙" },
+        { en: "SUN",      emoji: "☀️" },
+        { en: "ROCKET",   emoji: "🚀" },
+        { en: "PLANET",   emoji: "🪐" },
+        { en: "ALIEN",    emoji: "👽" },
+        { en: "EARTH",    emoji: "🌍" },
+        { en: "COMET",    emoji: "☄️" },
+        { en: "ASTRONAUT",emoji: "👨‍🚀" },
+        { en: "SATELLITE",emoji: "🛰️" },
+        { en: "UFO",      emoji: "🛸" },
+        { en: "TELESCOPE",emoji: "🔭" },
+        { en: "GALAXY",   emoji: "🌌" }
         ]
       },
       {
         id: "formas", icono: "🔷", nombre: "Shapes",
         color: "#29C6F5", labio: "#0B96C2",
-        // "forma" dibuja la figura en SVG, para que se entienda sin leer
+        // "forma" dibuja la figura en SVG
         palabras: [
-          { en: "CIRCLE",    emoji: "🔵", forma: "circulo" },
-          { en: "SQUARE",    emoji: "🟥", forma: "cuadrado" },
-          { en: "TRIANGLE",  emoji: "🔺", forma: "triangulo" },
-          { en: "RECTANGLE", emoji: "🟨", forma: "rectangulo" },
-          { en: "OVAL",      emoji: "🥚", forma: "ovalo" },
-          { en: "DIAMOND",   emoji: "🔶", forma: "rombo" },
-          { en: "HEART",     emoji: "❤️", forma: "corazon" },
-          { en: "ARROW",     emoji: "➡️", forma: "flecha" }
+        { en: "CIRCLE",   emoji: "🔵", forma: "circulo" },
+        { en: "SQUARE",   emoji: "🟥", forma: "cuadrado" },
+        { en: "TRIANGLE", emoji: "🔺", forma: "triangulo" },
+        { en: "RECTANGLE",emoji: "🟨", forma: "rectangulo" },
+        { en: "OVAL",     emoji: "🥚", forma: "ovalo" },
+        { en: "DIAMOND",  emoji: "🔶", forma: "rombo" },
+        { en: "HEART",    emoji: "❤️", forma: "corazon" },
+        { en: "ARROW",    emoji: "➡️", forma: "flecha" },
+        { en: "CROSS",    emoji: "➕", forma: "cruz" },
+        { en: "RING",     emoji: "⭕", forma: "anillo" }
         ]
       },
       {
         id: "tiempo", icono: "🌦️", nombre: "Weather",
         color: "#FFC93C", labio: "#DFA100",
         palabras: [
-          { en: "SUNNY",   emoji: "🌞" },
-          { en: "RAIN",    emoji: "🌧️" },
-          { en: "SNOW",    emoji: "❄️" },
-          { en: "CLOUD",   emoji: "☁️" },
-          { en: "WIND",    emoji: "💨" },
-          { en: "STORM",   emoji: "⛈️" },
-          { en: "RAINBOW", emoji: "🌈" },
-          { en: "HOT",     emoji: "🥵" },
-          { en: "COLD",    emoji: "🥶" }
+        { en: "SUNNY",    emoji: "🌞" },
+        { en: "RAIN",     emoji: "🌧️" },
+        { en: "SNOW",     emoji: "❄️" },
+        { en: "CLOUD",    emoji: "☁️" },
+        { en: "WIND",     emoji: "💨" },
+        { en: "STORM",    emoji: "⛈️" },
+        { en: "RAINBOW",  emoji: "🌈" },
+        { en: "HOT",      emoji: "🥵" },
+        { en: "COLD",     emoji: "🥶" },
+        { en: "FOG",      emoji: "🌫️" },
+        { en: "LIGHTNING",emoji: "⚡" },
+        { en: "SNOWMAN",  emoji: "⛄" },
+        { en: "ICE",      emoji: "🧊" },
+        { en: "TORNADO",  emoji: "🌪️" }
         ]
       },
       {
         id: "emociones", icono: "😊", nombre: "Emotions",
         color: "#FF4D8D", labio: "#D41F63",
-        // "cara" dibuja una carita al estilo de Blip: la expresion se entiende sola
+        // "cara" dibuja una carita al estilo de Blip
         palabras: [
-          { en: "HAPPY",     emoji: "😀", cara: "feliz" },
-          { en: "SAD",       emoji: "😢", cara: "triste" },
-          { en: "ANGRY",     emoji: "😠", cara: "enfadado" },
-          { en: "SURPRISED", emoji: "😲", cara: "sorprendido" },
-          { en: "SLEEPY",    emoji: "😴", cara: "dormido" },
-          { en: "SCARED",    emoji: "😨", cara: "asustado" },
-          { en: "SILLY",     emoji: "🤪", cara: "bobo" },
-          { en: "LOVE",      emoji: "🥰", cara: "enamorado" }
+        { en: "HAPPY",    emoji: "😀", cara: "feliz" },
+        { en: "SAD",      emoji: "😢", cara: "triste" },
+        { en: "ANGRY",    emoji: "😠", cara: "enfadado" },
+        { en: "SURPRISED",emoji: "😲", cara: "sorprendido" },
+        { en: "SLEEPY",   emoji: "😴", cara: "dormido" },
+        { en: "SCARED",   emoji: "😨", cara: "asustado" },
+        { en: "SILLY",    emoji: "🤪", cara: "bobo" },
+        { en: "LOVE",     emoji: "🥰", cara: "enamorado" },
+        { en: "PROUD",    emoji: "😎", cara: "orgulloso" },
+        { en: "SHY",      emoji: "😊", cara: "timido" },
+        { en: "EXCITED",  emoji: "🤩", cara: "emocionado" },
+        { en: "CALM",     emoji: "😌", cara: "tranquilo" }
         ]
       }
     ]
@@ -1324,6 +1514,12 @@ const TEMAS = NIVELES.reduce((lista, n) => lista.concat(n.temas), []);
 
 /* cuantas categorias hay que terminar en un nivel para abrir el siguiente */
 const CATEGORIAS_PARA_ABRIR = 3;
+
+/* Cuantas tarjetas se juegan en cada partida de una categoria.
+   El pool completo es mucho mayor: se baraja y se coge este puñado, para que
+   la sesion sea corta (un peque de 4 años se cansa) y distinta cada vez.
+   Si lo pones muy alto, se juega la categoria entera. */
+const TARJETAS_POR_RONDA = 10;
 
 /* --- Lo que dice Blip. TODO en ingles (inmersion), pero cada frase va SIEMPRE
        acompañada de una pista visual: por eso cada linea lleva su "pista". --- */
@@ -1380,6 +1576,7 @@ const AUDIO = {
 
 /* Ajustes rapidos del juego */
 const AJUSTES = {
+  tarjetasPorRonda: TARJETAS_POR_RONDA,
   msAutoAvance:     1800,  // espera antes de pasar de tarjeta al acertar
   msAutoAvance:     1800,  // espera antes de pasar de tarjeta al acertar
   msEscuchaMic:     12000, // cuanto tiempo total escucha el microfono
@@ -1397,6 +1594,7 @@ const $ = (sel) => document.querySelector(sel);
 /* ---------- estado en memoria (sin localStorage) ---------- */
 const estado = {
   tema: null,       // objeto del tema activo
+  mazo: null,       // tarjetas de ESTA partida (barajadas del pool del tema)
   indice: 0,        // tarjeta actual
   bloqueado: false, // true mientras celebra / avanza
   oyendo: false,    // true mientras el mic esta activo
@@ -1928,6 +2126,7 @@ function callar(){
 /* cuando se acaba la cola: Blip vuelve a la calma, pero la ultima pista
    se queda puesta (el peque tiene que seguir viendo que le toca hacer) */
 function alCallar(){
+  ignorarMicHasta = Date.now() + MS_SORDERA;   // no confundir la voz de Blip con la del peque
   if (estadoBlipActual === "hablando") ponerBlip("idle");
   $("#btnEscuchar").classList.remove("sonando");
 }
@@ -1936,10 +2135,12 @@ function alCallar(){
    4) PISTAS VISUALES — el idioma que el peque SI entiende
    ================================================================ */
 function limpiarPistas(){
-  ["#btnEscuchar","#btnMic","#btnListo"].forEach(sel => {
+  ["#btnEscuchar","#btnListo"].forEach(sel => {
     const b = $(sel);
-    b.classList.remove("destacado","sonando");
+    if (b) b.classList.remove("destacado","sonando");
   });
+  const mic = document.getElementById("micEstado");
+  if (mic) mic.classList.remove("destacado");
   $("#rejillaTemas").classList.remove("destacado");
   const z = document.getElementById("miniZona");
   if (z){
@@ -1960,8 +2161,8 @@ function aplicarPista(pista){
       $("#btnEscuchar").classList.add("destacado","sonando");
       ponerBlip("hablando");
       break;
-    case "mic":                            // "Now you say it!" -> el 🎤 brilla, Blip abre la boca
-      $("#btnMic").classList.add("destacado");
+    case "mic":                            // "Now you say it!" -> late el indicador de escucha
+      { const m = document.getElementById("micEstado"); if (m) m.classList.add("destacado"); }
       ponerBlip("hablando");
       break;
     case "listo":                          // "Tap here!" (cuando no hay micro) -> brilla el ✅
@@ -2035,20 +2236,35 @@ function mudarBlip(idHueco){
 }
 
 /* ================================================================
-   6) MICROFONO — SpeechRecognition con deteccion de soporte
+   6) MICROFONO — escucha CONTINUA durante toda la partida
+   El peque no toca ningun boton: se enciende al empezar la categoria y
+   se queda escuchando entre tarjetas. Los navegadores moviles cortan el
+   reconocimiento cada dos por tres, asi que lo volvemos a levantar solo.
+   Y pase lo que pase, el boton ✅ siempre esta ahi para avanzar.
    ================================================================ */
 const ReconocedorVoz = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-let reconocedor = null;        // instancia viva: se crea una nueva en cada intento
-let temporizadorMic = null;    // corte de seguridad de toda la escucha
-let intentosMic = 0;           // reintentos dentro de una misma escucha
-let motivoSinMic = "";         // por que no hay micro (para el mensajito de abajo)
-let oyoAlgo = false;           // ¿dijo algo aunque no acertara? -> "Try again!"
+let reconocedor = null;         // instancia viva
+let sesionMicActiva = false;    // ¿queremos estar escuchando ahora?
+let arrancandoMic = false;      // evita dos start() a la vez
+let temporizadorMic = null;     // reintento con calma
+let fallosSeguidos = 0;         // para no entrar en bucle
+let motivoSinMic = "";          // por que no hay microfono
+let ignorarMicHasta = 0;        // margen tras hablar, para no oirnos a nosotros
+
+const MAX_FALLOS_MIC = 6;       // a partir de aqui nos rendimos y queda el ✅
+const MS_REINTENTO_MIC = 700;   // respiro entre reintentos (nada de bucle vivo)
+const MS_SORDERA = 400;         // margen tras hablar. Corto a proposito: un peque
+                                // contesta al instante y no queremos perderselo
+
+/* ¿hay que hacer oidos sordos ahora mismo? */
+function micEnPausa(){
+  return vozOcupada || Date.now() < ignorarMicHasta;
+}
 
 /* El microfono SOLO funciona en paginas seguras: https:// , localhost, o el
    archivo abierto directamente. Si sirves el juego por http:// desde otro
    ordenador -por ejemplo http://192.168.1.10:8080 abierto en el iPad- el
-   navegador corta el microfono. Lo detectamos antes de enseñar el boton para
-   no dejar al peque tocando un boton que nunca va a funcionar. */
+   navegador corta el microfono. Lo detectamos antes de enseñar nada. */
 function paginaSegura(){
   return window.isSecureContext !== false;
 }
@@ -2062,146 +2278,148 @@ function prepararMic(){
   return true;
 }
 
-/* una instancia nueva por intento: tras un abort() varios navegadores
-   (Chrome el primero) dejan la anterior en un estado del que ya no arranca */
+const NOTAS_MIC = {
+  "inseguro": "🎤 El micrófono necesita una página https",
+  "permiso":  "🎤 El micrófono está bloqueado en este navegador",
+  "sin-api":  "🎤 El micrófono no está disponible en este dispositivo",
+  "fallos":   "🎤 El micrófono no responde en este dispositivo"
+};
+
+/* el indicador: un puntito que late mientras escucha. No es un boton. */
+function pintarMic(){
+  const ind = $("#micEstado"), nota = $("#notaMic");
+  if (!ind) return;
+  if (estado.micOk){
+    ind.hidden = false;
+    ind.classList.toggle("oyendo", estado.oyendo);
+    nota.hidden = true;
+  } else {
+    ind.hidden = true;
+    ind.classList.remove("oyendo", "destacado");
+    nota.hidden = false;
+    nota.textContent = NOTAS_MIC[motivoSinMic] || NOTAS_MIC["sin-api"];
+  }
+}
+
 function crearReconocedor(){
   if (!ReconocedorVoz) return null;
   try{
     const r = new ReconocedorVoz();
     r.lang = "en-US";
-    r.continuous = false;
-    r.interimResults = true;    // aprovechamos resultados parciales
+    r.continuous = true;        // no se para entre frases
+    r.interimResults = true;    // aprovechamos lo que va oyendo
     r.maxAlternatives = 5;      // mas opciones = mas posibilidades de acertar
     return r;
   }catch(e){ return null; }
 }
 
-const NOTAS_MIC = {
-  "inseguro": "🎤 El micrófono necesita una página https",
-  "permiso":  "🎤 El micrófono está bloqueado en este navegador",
-  "sin-api":  "🎤 El micrófono no está disponible en este dispositivo"
-};
-
-function pintarMic(){
-  const btn = $("#btnMic"), nota = $("#notaMic");
-  if (estado.micOk){ btn.hidden = false; nota.hidden = true; return; }
-  btn.hidden = true;
-  nota.hidden = false;
-  nota.textContent = NOTAS_MIC[motivoSinMic] || NOTAS_MIC["sin-api"];
-}
-
-/* suelta la instancia actual sin dejar callbacks sueltos */
 function soltarReconocedor(){
   if (!reconocedor) return;
   const r = reconocedor;
   reconocedor = null;
-  try{ r.onresult = r.onerror = r.onend = null; }catch(e){}
+  try{ r.onresult = r.onerror = r.onend = r.onstart = null; }catch(e){}
   try{ r.abort(); }catch(e){
     try{ r.stop(); }catch(e2){}
   }
 }
 
-/* apaga el micro pase lo que pase */
-function pararMic(){
-  estado.oyendo = false;
-  intentosMic = 0;
-  const btn = $("#btnMic");
-  if (btn) btn.classList.remove("oyendo");
-  if (temporizadorMic){ clearTimeout(temporizadorMic); temporizadorMic = null; }
-  soltarReconocedor();
+/* enciende la escucha para toda la partida */
+function arrancarSesionMic(){
+  if (!estado.micOk) { pintarMic(); return false; }
+  sesionMicActiva = true;
+  fallosSeguidos = 0;
+  levantarMic();
+  return true;
 }
 
-/* el micro no va a funcionar: lo escondemos y seguimos con el boton de tocar */
+/* apaga del todo: libera el microfono y deja de gastar bateria */
+function pararSesionMic(){
+  sesionMicActiva = false;
+  arrancandoMic = false;
+  estado.oyendo = false;
+  if (temporizadorMic){ clearTimeout(temporizadorMic); temporizadorMic = null; }
+  soltarReconocedor();
+  pintarMic();
+}
+/* alias historico: parar el microfono es parar la sesion */
+function pararMic(){ pararSesionMic(); }
+
+/* el microfono no va a funcionar: lo escondemos y seguimos con el ✅ */
 function fallarMic(motivo){
   motivoSinMic = motivo;
   estado.micOk = false;
-  pararMic();
+  pararSesionMic();
   pintarMic();
-  // el camino alternativo tiene que quedar señalado, no solo dicho
   speakPhrase(FRASES.toca, "listo");
 }
 
-function escuchar(){
-  if (!estado.micOk || estado.bloqueado) return;
-  if (estado.oyendo){ pararMic(); limpiarPistas(); animo(""); return; }  // segundo toque = cancelar
-
-  const objetivo = tarjetaActual();
-  if (!objetivo) return;
-
-  // callamos a Blip: si hablamos mientras escuchamos, el micro se oye a si mismo
-  cancelarGuia();
-  callar();
-  limpiarPistas();
-
-  intentosMic = 0;
-  oyoAlgo = false;
-  // corte de seguridad de TODA la escucha: en algunos moviles onend nunca llega
-  if (temporizadorMic) clearTimeout(temporizadorMic);
-  temporizadorMic = setTimeout(() => {
-    if (estado.oyendo){ pararMic(); fallar(); }
-  }, AJUSTES.msEscuchaMic);
-
-  intentarEscucha(objetivo);
-}
-
-/* OJO: start() tiene que ejecutarse DENTRO del gesto del usuario, sin ningun
-   await por delante, o iOS lo rechaza. Por eso NO pedimos permiso con
-   getUserMedia antes: el propio start() ya saca el aviso del navegador. */
-function intentarEscucha(objetivo){
+/* (re)arranca el reconocimiento. OJO: start() tiene que ir sin await por
+   delante o iOS lo rechaza; el permiso lo pide el propio navegador. */
+function levantarMic(){
+  if (!sesionMicActiva || !estado.micOk || arrancandoMic) return false;
+  arrancandoMic = true;
   soltarReconocedor();
   reconocedor = crearReconocedor();
-  if (!reconocedor){ fallarMic("sin-api"); return false; }
+  if (!reconocedor){ arrancandoMic = false; fallarMic("sin-api"); return false; }
 
-  estado.oyendo = true;
-  $("#btnMic").classList.add("oyendo","destacado");
-  animo("👂");
+  reconocedor.onstart = () => {
+    arrancandoMic = false;
+    fallosSeguidos = 0;          // arranco bien: contador a cero
+    estado.oyendo = true;
+    pintarMic();
+  };
 
   reconocedor.onresult = (ev) => {
-    let acierto = false;
+    if (estado.bloqueado) return;             // ya esta celebrando
+    if (micEnPausa()) return;                 // es Blip hablando, no el peque
+    const objetivo = tarjetaActual();
+    if (!objetivo) return;
     try{
       for (let i = ev.resultIndex; i < ev.results.length; i++){
         const res = ev.results[i];
         for (let j = 0; j < res.length; j++){
-          if (String(res[j].transcript || "").trim()) oyoAlgo = true;
-          if (coincide(res[j].transcript, objetivo.en, objetivo.extra)){ acierto = true; break; }
+          if (coincide(res[j].transcript, objetivo.en, objetivo.extra)){
+            acertar();                        // ¡lo dijo!
+            return;
+          }
         }
-        if (acierto) break;
       }
-    }catch(e){ acierto = false; }
-    if (acierto){ pararMic(); acertar(); }
+    }catch(e){}
+    // lo que no encaja se ignora en silencio: ni castigo ni mensajes raros
   };
 
   reconocedor.onerror = (ev) => {
     const cod = (ev && ev.error) || "";
-    // permanentes: no hay permiso o el navegador no ofrece el servicio
-    if (cod === "not-allowed" || cod === "service-not-allowed"){ fallarMic("permiso"); return; }
-    // pasajeros ("no-speech", "network", "audio-capture", "aborted"): NO escondemos
-    // el boton, que un fallo de red o un silencio no deje al peque sin microfono.
-    // De reintentar o rendirse ya se encarga onend.
+    if (cod === "not-allowed" || cod === "service-not-allowed"){
+      fallarMic("permiso");                   // el adulto dijo que no: se acabo
+      return;
+    }
+    if (cod !== "no-speech") fallosSeguidos++; // el silencio no cuenta como fallo
   };
 
   reconocedor.onend = () => {
-    if (!estado.oyendo) return;          // ya lo paramos nosotros
-    // un peque de 4 años tarda en arrancar a hablar: le damos otra oportunidad
-    if (intentosMic < AJUSTES.reintentosMic && !estado.bloqueado){
-      intentosMic++;
-      if (intentarEscucha(objetivo)) return;
-    }
+    arrancandoMic = false;
     estado.oyendo = false;
-    $("#btnMic").classList.remove("oyendo");
-    if (temporizadorMic){ clearTimeout(temporizadorMic); temporizadorMic = null; }
-    if (!estado.bloqueado) fallar();
+    pintarMic();
+    if (!sesionMicActiva) return;             // lo paramos nosotros
+    if (fallosSeguidos >= MAX_FALLOS_MIC){    // no insistimos hasta la extenuacion
+      fallarMic("fallos");
+      return;
+    }
+    // los moviles cortan la escucha cada poco: la levantamos con calma
+    if (temporizadorMic) clearTimeout(temporizadorMic);
+    temporizadorMic = luego(() => { temporizadorMic = null; levantarMic(); }, MS_REINTENTO_MIC);
   };
 
   try{
     reconocedor.start();
   }catch(e){
-    // start() lanza si ya estaba activo o si el navegador lo prohibe
-    estado.oyendo = false;
-    $("#btnMic").classList.remove("oyendo");
-    soltarReconocedor();
-    if (temporizadorMic){ clearTimeout(temporizadorMic); temporizadorMic = null; }
-    speakPhrase(FRASES.toca, "listo");
+    // start() lanza si ya estaba activo: lo reintentamos luego, sin drama
+    arrancandoMic = false;
+    fallosSeguidos++;
+    if (fallosSeguidos >= MAX_FALLOS_MIC){ fallarMic("fallos"); return false; }
+    if (temporizadorMic) clearTimeout(temporizadorMic);
+    temporizadorMic = luego(() => { temporizadorMic = null; levantarMic(); }, MS_REINTENTO_MIC);
     return false;
   }
   return true;
@@ -2255,6 +2473,11 @@ function soundex(s){
 }
 
 /* ¿lo que dijo el peque se parece a la palabra objetivo? */
+/* muletillas de conversacion: por muy parecidas que suenen, no cuentan */
+const MULETILLAS = ["the","a","an","and","to","too","it","is","in","on","at","of",
+                    "you","yes","no","ok","okay","look","see","please","what","this",
+                    "that","he","she","we","they","me","my","mom","mum","dad"];
+
 function coincide(dicho, objetivo, extras){
   const t = normalizar(dicho);
   if (!t) return false;
@@ -2272,7 +2495,10 @@ function coincide(dicho, objetivo, extras){
 
     for (const p of dichas){
       if (p === meta) return true;
-      const umbral = meta.length <= 2 ? 1 : AJUSTES.distanciaMax;  // palabras de 1-2 letras: mas estricto
+      // una muletilla nunca vale por parecido (solo si ES la palabra)
+      if (MULETILLAS.indexOf(p) !== -1) continue;
+      // 1-4 letras: solo 1 cambio. Mas largas: la tolerancia de la config.
+      const umbral = meta.length <= 4 ? 1 : AJUSTES.distanciaMax;
       if (levenshtein(p, meta) <= umbral) return true;
       if (soundex(p) === soundex(meta)) return true;               // suena igual
       if (p.length >= 3 && meta.length >= 3 &&
@@ -2285,7 +2511,7 @@ function coincide(dicho, objetivo, extras){
 /* ================================================================
    8) PANTALLAS Y RENDER
    ================================================================ */
-const HUECOS = { home:"huecoHome", juego:"huecoJuego", mini:"huecoMini", final:"huecoFinal", album:"huecoAlbum" };
+const HUECOS = { perfiles:"huecoPerfiles", home:"huecoHome", juego:"huecoJuego", mini:"huecoMini", final:"huecoFinal", album:"huecoAlbum" };
 
 function mostrarPantalla(id){
   document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
@@ -2318,8 +2544,24 @@ function limpiarConfeti(){
 function animo(txt){ $("#animo").textContent = txt || ""; }
 
 function tarjetaActual(){
-  if (!estado.tema) return null;
-  return estado.tema.palabras[estado.indice] || null;
+  if (!estado.mazo) return null;
+  return estado.mazo[estado.indice] || null;
+}
+
+/* baraja de Fisher-Yates: reparto justo, sin sesgos raros */
+function barajar(lista){
+  const a = lista.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = (Math.random() * (i + 1)) | 0;
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+/* el mazo de esta partida: barajado y recortado */
+function repartirMazo(tema){
+  const cuantas = Math.max(1, Math.min(AJUSTES.tarjetasPorRonda, tema.palabras.length));
+  return barajar(tema.palabras).slice(0, cuantas);
 }
 
 /* ================================================================
@@ -2335,7 +2577,9 @@ const FORMAS = {
   ovalo:      { d:'<ellipse cx="50" cy="50" rx="40" ry="27"/>',                    color:"#FF8A3D" },
   rombo:      { d:'<path d="M50 8 L88 50 L50 92 L12 50 Z"/>',                      color:"#7C4DFF" },
   corazon:    { d:'<path d="M50 88 C16 64 8 43 21 29 C33 17 47 22 50 34 C53 22 67 17 79 29 C92 43 84 64 50 88 Z"/>', color:"#E63946" },
-  flecha:     { d:'<path d="M8 40 H54 V20 L94 50 L54 80 V60 H8 Z"/>',              color:"#0B96C2" }
+  flecha:     { d:'<path d="M8 40 H54 V20 L94 50 L54 80 V60 H8 Z"/>',              color:"#0B96C2" },
+  cruz:       { d:'<path d="M38 10 H62 V38 H90 V62 H62 V90 H38 V62 H10 V38 H38 Z"/>', color:"#FF4D8D" },
+  anillo:     { d:'<path d="M50 8 A42 42 0 1 1 49.9 8 Z M50 30 A20 20 0 1 0 50.1 30 Z" fill-rule="evenodd"/>', color:"#3DD68C" }
 };
 
 function svgForma(nombre){
@@ -2353,7 +2597,11 @@ const CARAS = {
   dormido:     { color:"#C7B9FF", ojos:"cerrados", boca:"o",       zzz:true },
   asustado:    { color:"#B8E6FF", ojos:"grandes",  boca:"onda",    cejas:"alta" },
   bobo:        { color:"#FFD24A", ojos:"guino",    boca:"lengua" },
-  enamorado:   { color:"#FF9EC4", ojos:"corazon",  boca:"sonrisa", mejillas:true }
+  enamorado:   { color:"#FF9EC4", ojos:"corazon",  boca:"sonrisa", mejillas:true },
+  orgulloso:   { color:"#FFD24A", ojos:"cerrados", boca:"sonrisa", cejas:"alta" },
+  timido:      { color:"#FFC0D9", ojos:"mirando",  boca:"pequena", mejillas:true },
+  emocionado:  { color:"#FFD24A", ojos:"estrella", boca:"o",       mejillas:true },
+  tranquilo:   { color:"#B6E3C6", ojos:"cerrados", boca:"sonrisa" }
 };
 
 function svgCara(nombre){
@@ -2379,6 +2627,11 @@ function svgCara(nombre){
   } else if (c.ojos === "guino"){
     p += '<circle cx="35" cy="44" r="7" fill="' + T + '"/>' +
          '<path d="M57 45 Q65 37 73 45" fill="none" stroke="' + T + '" stroke-width="5" stroke-linecap="round"/>';
+  } else if (c.ojos === "mirando"){          // mira de reojo: timidez
+    p += '<circle cx="30" cy="45" r="6" fill="' + T + '"/><circle cx="60" cy="45" r="6" fill="' + T + '"/>';
+  } else if (c.ojos === "estrella"){         // ojos de ilusion
+    const est = (x) => '<path d="M' + x + ' 33 l3.5 8.5 8.5 3.5 -8.5 3.5 -3.5 8.5 -3.5 -8.5 -8.5 -3.5 8.5 -3.5 z" fill="#fff" stroke="' + T + '" stroke-width="2"/>';
+    p += est(35) + est(65);
   } else if (c.ojos === "corazon"){
     const cor = (x) => '<path d="M' + x + ' 52 C' + (x-11) + ' 44 ' + (x-9) + ' 34 ' + x + ' 38 C' + (x+9) + ' 34 ' + (x+11) + ' 44 ' + x + ' 52 Z" fill="#E63946"/>';
     p += cor(35) + cor(65);
@@ -2394,6 +2647,7 @@ function svgCara(nombre){
   if (c.boca === "puchero") p += '<path d="M32 74 Q50 56 68 74" fill="none" stroke="' + T + '" stroke-width="6" stroke-linecap="round"/>';
   if (c.boca === "o")       p += '<ellipse cx="50" cy="68" rx="9" ry="11" fill="' + T + '"/>';
   if (c.boca === "onda")    p += '<path d="M32 70 q6 -8 12 0 q6 8 12 0 q6 -8 12 0" fill="none" stroke="' + T + '" stroke-width="5" stroke-linecap="round"/>';
+  if (c.boca === "pequena") p += '<ellipse cx="50" cy="66" rx="6" ry="5" fill="' + T + '"/>';
   if (c.boca === "lengua")  p += '<path d="M34 62 Q50 78 66 62" fill="none" stroke="' + T + '" stroke-width="6" stroke-linecap="round"/>' +
                                  '<path d="M46 70 q6 14 12 0 z" fill="#FF7BA9"/>';
 
@@ -2415,7 +2669,7 @@ function ponerDibujo(el, palabra){
 /* ================================================================
    NIVELES — que esta abierto y que categorias se han terminado
    ================================================================ */
-const progreso = { completados: {}, desbloqueados: [true, false, false] };
+const progreso = { completados: {}, desbloqueados: [true, false, false], puntos: 0 };
 let pendienteDesbloqueo = null;      // nivel recien abierto, para celebrarlo en casa
 
 function nivelDeTema(tema){
@@ -2531,7 +2785,7 @@ function celebrarDesbloqueo(iNivel){
 
 /* barra de progreso: se rellena con rebote y la estrella cabalga el borde */
 function pintarProgreso(conPremio){
-  const total = estado.tema ? estado.tema.palabras.length : 1;
+  const total = estado.mazo ? estado.mazo.length : 1;
   const ratio = Math.max(0, Math.min(1, estado.indice / total));
   $("#progreso").style.setProperty("--p", ratio);
   const ficha = $("#ficha"), meta = $("#meta");
@@ -2645,6 +2899,7 @@ let temporizadorAvance = null;   // el salto a la siguiente tarjeta
 function empezarTema(tema){
   pararTodo();                   // arranca de cero, sin restos de la partida anterior
   estado.tema = tema;
+  estado.mazo = repartirMazo(tema);   // barajado: cada partida es distinta
   estado.indice = 0;
   estado.bloqueado = false;
   estado.hastaMini = tarjetasHastaMini();
@@ -2652,6 +2907,7 @@ function empezarTema(tema){
   // el reparto de minijuegos siga variando al cambiar de categoria
   mostrarPantalla("juego");
   pintarMic();
+  arrancarSesionMic();          // escucha continua durante toda la partida
   pintarTarjeta();
   programarGuia(420);            // deja entrar la tarjeta antes de hablar
 }
@@ -2665,7 +2921,8 @@ function acertar(){
   if (estado.pantalla !== "juego") return;
   if (estado.bloqueado) return;
   estado.bloqueado = true;
-  pararMic();
+  // OJO: aqui NO se para el microfono. La escucha dura toda la partida y
+  // debe seguir viva al pasar de tarjeta; solo se apaga al salir.
   callar();
   limpiarPistas();
 
@@ -2677,6 +2934,7 @@ function acertar(){
 
   estado.indice++;
   estado.hastaMini--;
+  sumarPuntos(1);                 // un punto por tarjeta
   pintarProgreso(true);
 
   cancelar(temporizadorAvance);
@@ -2693,7 +2951,7 @@ function acertar(){
 
 /* que toca ahora: ¿minijuego, siguiente tarjeta o final del tema? */
 function seguirDespuesDeTarjeta(){
-  const quedanTarjetas = estado.indice < estado.tema.palabras.length;
+  const quedanTarjetas = estado.indice < estado.mazo.length;
   // el minijuego solo tiene sentido si ya se han visto palabras y quedan mas
   if (quedanTarjetas && estado.hastaMini <= 0 && estado.indice >= 1){
     estado.hastaMini = tarjetasHastaMini();
@@ -2707,11 +2965,12 @@ function seguirDespuesDeTarjeta(){
 
 function terminarTema(){
   if (estado.pantalla !== "juego") return;   // solo se acaba desde la partida
+  sumarPuntos(10);                           // premio por acabar el capitulo
   marcarCategoriaCompletada(estado.tema);
   cancelarGuia();
   callar();
   mostrarPantalla("final");
-  const n = estado.tema.palabras.length;
+  const n = estado.mazo ? estado.mazo.length : 0;
   $("#estrellasFinal").textContent = new Array(Math.min(n, 10) + 1).join("⭐");
   sonidos.fiesta();
   lanzarConfeti(80);
@@ -2810,10 +3069,10 @@ const LETRAS = {
 
 const ICONOS_MINI = { tocar:"🎯", arrastrar:"✋", trazar:"✏️", burbujas:"🫧" };
 
-/* palabras que el peque YA ha visto en este tema */
+/* palabras que el peque YA ha visto en ESTA partida */
 function palabrasVistas(){
-  if (!estado.tema) return [];
-  return estado.tema.palabras.slice(0, Math.max(1, estado.indice));
+  if (!estado.mazo) return [];
+  return estado.mazo.slice(0, Math.max(1, estado.indice));
 }
 
 function alAzar(lista){ return lista[(Math.random() * lista.length) | 0]; }
@@ -2892,7 +3151,7 @@ function volverDeMini(){
   cerrarMini();
   if (!estado.tema) { irACasa(); return; }
   mostrarPantalla("juego");
-  if (estado.indice >= estado.tema.palabras.length){ terminarTema(); return; }
+  if (estado.indice >= estado.mazo.length){ terminarTema(); return; }
   pintarTarjeta();
   programarGuia(300);
 }
@@ -3160,6 +3419,209 @@ function reventar(b, x, y){
 }
 
 /* ================================================================
+   11b) PERFILES — cada peque con su propio progreso
+   En el aparato hay una lista de perfiles y, por cada uno, su propia
+   caja con pegatinas, categorias hechas, niveles y puntos.
+   ================================================================ */
+const CLAVE_PERFILES = "blip_perfiles_v1";   // { lista:[...], ultimo:id }
+const PREFIJO_PERFIL = "blip_profile_";      // blip_profile_<id>
+const CLAVE_VIEJA_ALBUM = "blip_album_v1";   // guardado de antes de los perfiles
+
+const COLORES_AVATAR = ["#7C4DFF", "#FF4D8D", "#3DD68C", "#FF8A3D", "#29C6F5", "#FFC93C"];
+
+let perfiles = [];         // [{ id, nombre, avatar }]
+let perfilActual = null;   // el que esta jugando
+
+/* avatar: un blob al estilo de Blip, del color que toque */
+function svgAvatar(color){
+  const T = "#2B2445";
+  return '<svg viewBox="0 0 100 100">' +
+    '<ellipse cx="50" cy="92" rx="26" ry="5" fill="rgba(43,36,69,.14)"/>' +
+    '<path d="M50 12 C74 12 90 30 90 54 C90 78 73 92 50 92 C27 92 10 78 10 54 C10 30 26 12 50 12 Z" fill="' + color + '"/>' +
+    '<ellipse cx="36" cy="34" rx="13" ry="9" fill="#fff" opacity=".3"/>' +
+    '<circle cx="36" cy="48" r="9" fill="#fff"/><circle cx="37" cy="50" r="5" fill="' + T + '"/>' +
+    '<circle cx="64" cy="48" r="9" fill="#fff"/><circle cx="65" cy="50" r="5" fill="' + T + '"/>' +
+    '<ellipse cx="24" cy="64" rx="7" ry="4.5" fill="#FF7BA9" opacity=".5"/>' +
+    '<ellipse cx="76" cy="64" rx="7" ry="4.5" fill="#FF7BA9" opacity=".5"/>' +
+    '<path d="M38 66 Q50 80 62 66" fill="none" stroke="' + T + '" stroke-width="5" stroke-linecap="round"/>' +
+    '</svg>';
+}
+
+function leerJSON(clave){
+  try{
+    const bruto = window.localStorage.getItem(clave);
+    return bruto ? JSON.parse(bruto) : null;
+  }catch(e){ return null; }
+}
+function escribirJSON(clave, valor){
+  if (!almacenDisponible) return false;
+  try{ window.localStorage.setItem(clave, JSON.stringify(valor)); return true; }
+  catch(e){ almacenDisponible = false; return false; }
+}
+
+function claveDePerfil(id){ return PREFIJO_PERFIL + id; }
+
+function cargarPerfiles(){
+  almacenDisponible = probarAlmacen();
+  perfiles = [];
+  let ultimo = null;
+  const datos = almacenDisponible ? leerJSON(CLAVE_PERFILES) : null;
+  if (datos && Array.isArray(datos.lista)){
+    perfiles = datos.lista.filter(p => p && p.id);
+    ultimo = datos.ultimo || null;
+  }
+  // Migracion: si hay un guardado de antes de los perfiles, no se pierde:
+  // se convierte en el primer jugador.
+  if (!perfiles.length && almacenDisponible){
+    const viejo = leerJSON(CLAVE_VIEJA_ALBUM);
+    if (viejo && (viejo.ganadas || viejo.completados)){
+      const p = crearPerfil("Player 1", COLORES_AVATAR[0], true);
+      if (p){
+        escribirJSON(claveDePerfil(p.id), {
+          v: 3,
+          ganadas: viejo.ganadas || {},
+          completados: viejo.completados || {},
+          desbloqueados: viejo.desbloqueados || [true, false, false],
+          puntos: 0
+        });
+      }
+    }
+  }
+  return ultimo;
+}
+
+function guardarPerfiles(){
+  escribirJSON(CLAVE_PERFILES, {
+    lista: perfiles,
+    ultimo: perfilActual ? perfilActual.id : null
+  });
+}
+
+function crearPerfil(nombre, color, silencioso){
+  const limpio = String(nombre || "").trim().slice(0, 14) || "Player";
+  const p = {
+    id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    nombre: limpio,
+    avatar: color || COLORES_AVATAR[perfiles.length % COLORES_AVATAR.length]
+  };
+  perfiles.push(p);
+  guardarPerfiles();
+  if (!silencioso) escribirJSON(claveDePerfil(p.id), {
+    v: 3, ganadas: {}, completados: {}, desbloqueados: [true, false, false], puntos: 0
+  });
+  return p;
+}
+
+/* entra a jugar con un perfil: carga SU progreso */
+function entrarPerfil(id){
+  const p = perfiles.find(x => x.id === id);
+  if (!p) return false;
+  perfilActual = p;
+  cargarAlbum();                 // lee la caja de este perfil
+  guardarPerfiles();             // recuerda cual fue el ultimo
+  pintarContadorAlbum();
+  pintarAvatarPerfil();
+  pintarHome();
+  mostrarPantalla("home");
+  programarSaludo(500);
+  return true;
+}
+
+function borrarPerfil(id){
+  const i = perfiles.findIndex(x => x.id === id);
+  if (i === -1) return false;
+  if (almacenDisponible){
+    try{ window.localStorage.removeItem(claveDePerfil(id)); }catch(e){}
+  }
+  perfiles.splice(i, 1);
+  if (perfilActual && perfilActual.id === id) perfilActual = null;
+  guardarPerfiles();
+  return true;
+}
+
+/* pantalla "¿quien juega?" */
+function pintarPerfiles(){
+  const cont = $("#listaPerfiles");
+  if (!cont) return;
+  cont.innerHTML = "";
+  perfiles.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.className = "perfil-btn";
+    b.dataset.perfil = p.id;
+    b.style.animationDelay = (i * 70) + "ms";
+    b.innerHTML = '<span class="cara"></span><span class="nombre"></span><span class="puntos"></span>';
+    b.querySelector(".cara").innerHTML = svgAvatar(p.avatar);
+    b.querySelector(".nombre").textContent = p.nombre;
+    const caja = leerJSON(claveDePerfil(p.id));
+    const pts = (caja && caja.puntos) || 0;
+    b.querySelector(".puntos").textContent = "⭐ " + pts;
+    b.addEventListener("click", () => { sonidos.toque(); entrarPerfil(p.id); });
+    cont.appendChild(b);
+  });
+
+  const nuevo = document.createElement("button");
+  nuevo.className = "perfil-btn nuevo";
+  nuevo.id = "btnNuevoPerfil";
+  nuevo.innerHTML = '<span class="mas">＋</span><span class="nombre">New player</span>';
+  nuevo.addEventListener("click", () => { sonidos.toque(); abrirCreador(); });
+  cont.appendChild(nuevo);
+}
+
+function mostrarPerfiles(){
+  pararTodo();
+  pintarPerfiles();
+  mostrarPantalla("perfiles");
+}
+
+/* creador de perfil: nombre + color. Lo usa el adulto. */
+let colorElegido = COLORES_AVATAR[0];
+
+function abrirCreador(){
+  colorElegido = COLORES_AVATAR[perfiles.length % COLORES_AVATAR.length];
+  const paleta = $("#paletaAvatar");
+  paleta.innerHTML = "";
+  COLORES_AVATAR.forEach(c => {
+    const b = document.createElement("button");
+    b.className = "muestra" + (c === colorElegido ? " elegida" : "");
+    b.style.background = c;
+    b.dataset.color = c;
+    b.addEventListener("click", () => {
+      colorElegido = c;
+      paleta.querySelectorAll(".muestra").forEach(m => m.classList.toggle("elegida", m.dataset.color === c));
+      $("#previoAvatar").innerHTML = svgAvatar(c);
+    });
+    paleta.appendChild(b);
+  });
+  $("#previoAvatar").innerHTML = svgAvatar(colorElegido);
+  $("#nombrePerfil").value = "";
+  $("#creador").classList.add("activo");
+}
+function cerrarCreador(){ $("#creador").classList.remove("activo"); }
+
+function confirmarCreacion(){
+  const nombre = $("#nombrePerfil").value;
+  const p = crearPerfil(nombre, colorElegido);
+  cerrarCreador();
+  if (p) entrarPerfil(p.id);
+}
+
+/* el avatar de la esquina: sirve para cambiar de jugador */
+function pintarAvatarPerfil(){
+  const b = document.getElementById("btnPerfil");
+  if (!b) return;
+  if (perfilActual){
+    b.innerHTML = svgAvatar(perfilActual.avatar);
+    b.setAttribute("aria-label", "Jugador: " + perfilActual.nombre);
+  }
+}
+
+/* puntos: pequeño premio por cada tarjeta y por terminar una categoria */
+function sumarPuntos(n){
+  progreso.puntos = (progreso.puntos || 0) + n;
+  guardarAlbum();
+}
+
+/* ================================================================
    12) ALBUM DE PEGATINAS
    Cada palabra del array TEMAS tiene su pegatina. El identificador se
    deduce solo del tema y la palabra ("animales/DOG"), asi que al añadir
@@ -3189,12 +3651,17 @@ function probarAlmacen(){
 }
 
 function cargarAlbum(){
-  almacenDisponible = probarAlmacen();
-  if (!almacenDisponible) return;
+  // cada perfil tiene su propia caja; sin perfil se juega en memoria
+  album.ganadas = {};
+  progreso.completados = {};
+  progreso.puntos = 0;
+  progreso.desbloqueados = [true, false, false];
+  if (!perfilActual || !almacenDisponible){ recalcularDesbloqueos(); return; }
   try{
-    const bruto = window.localStorage.getItem(CLAVE_ALBUM);
-    if (!bruto) return;
+    const bruto = window.localStorage.getItem(claveDePerfil(perfilActual.id));
+    if (!bruto){ recalcularDesbloqueos(); return; }
     const datos = JSON.parse(bruto);
+    if (datos && typeof datos.puntos === "number") progreso.puntos = datos.puntos;
     if (datos && datos.ganadas && typeof datos.ganadas === "object"){
       album.ganadas = datos.ganadas;
     }
@@ -3212,13 +3679,14 @@ function cargarAlbum(){
 }
 
 function guardarAlbum(){
-  if (!almacenDisponible) return false;
+  if (!almacenDisponible || !perfilActual) return false;
   try{
-    window.localStorage.setItem(CLAVE_ALBUM, JSON.stringify({
-      v: 2,
+    window.localStorage.setItem(claveDePerfil(perfilActual.id), JSON.stringify({
+      v: 3,
       ganadas: album.ganadas,
       completados: progreso.completados,
-      desbloqueados: progreso.desbloqueados
+      desbloqueados: progreso.desbloqueados,
+      puntos: progreso.puntos || 0
     }));
     return true;
   }catch(e){
@@ -3460,8 +3928,9 @@ function borrarAlbum(){
   progreso.completados = {};
   progreso.desbloqueados = [true, false, false];
   pendienteDesbloqueo = null;
-  if (almacenDisponible){
-    try{ window.localStorage.removeItem(CLAVE_ALBUM); }catch(e){}
+  progreso.puntos = 0;
+  if (almacenDisponible && perfilActual){
+    try{ window.localStorage.removeItem(claveDePerfil(perfilActual.id)); }catch(e){}
   }
   pintarContadorAlbum();
   pintarHome();
@@ -3519,11 +3988,9 @@ function arrancar(){
   pintarBotonSonido();
   despertarAudio().then(() => { luego(arrancarAmbiente, 400); });
 
-  cargarAlbum();
-  pintarContadorAlbum();
-  pintarHome();
-  mostrarPantalla("home");
-  programarSaludo(500);
+  cargarPerfiles();
+  pintarPerfiles();
+  mostrarPantalla("perfiles");   // "¿quien juega?" antes de nada
 }
 
 /* varios eventos por si acaso: en iOS pointerdown/touchend son los mas fiables */
@@ -3533,7 +4000,6 @@ function arrancar(){
 
 /* botones del juego */
 $("#btnEscuchar").addEventListener("click", repetirPalabra);
-$("#btnMic").addEventListener("click", escuchar);
 $("#btnListo").addEventListener("click", () => {
   // camino principal, no un plan B: siempre avanza
   if (!estado.bloqueado) acertar();
@@ -3556,6 +4022,16 @@ $("#btnAlbum").addEventListener("click", () => { sonidos.toque(); abrirAlbum(); 
   ["pointerup","pointerleave","pointercancel"].forEach(e => b.addEventListener(e, soltar));
 })();
 $("#btnSonido").addEventListener("click", () => { alternarAmbiente(); });
+$("#btnPerfil").addEventListener("click", () => { sonidos.toque(); mostrarPerfiles(); });
+$("#btnCancelarCreador").addEventListener("click", cerrarCreador);
+$("#btnCrearPerfil").addEventListener("click", confirmarCreacion);
+$("#nombrePerfil").addEventListener("keydown", (ev) => { if (ev.key === "Enter") confirmarCreacion(); });
+$("#btnBorrarPerfil").addEventListener("click", () => {
+  if (!perfilActual) return;
+  borrarPerfil(perfilActual.id);
+  cerrarDialogo();
+  mostrarPerfiles();
+});
 $("#btnCancelarBorrado").addEventListener("click", cerrarDialogo);
 $("#btnConfirmarBorrado").addEventListener("click", borrarAlbum);
 $("#dialogo").addEventListener("click", (ev) => { if (ev.target.id === "dialogo") cerrarDialogo(); });
@@ -3584,14 +4060,23 @@ document.addEventListener("visibilitychange", () => {
 /* ---------- ganchos para pruebas automaticas (no afectan al juego) ---------- */
 window.__juego = {
   TEMAS, AJUSTES, FRASES, estado,
-  coincide, levenshtein, soundex, normalizar,
+  coincide, levenshtein, soundex, normalizar, MULETILLAS,
   prepararMic, pintarMic, elegirVoz, despertarAudio, tocarNotas, paginaSegura,
+  arrancarSesionMic, pararSesionMic, levantarMic, fallarMic,
+  get micSesion(){ return sesionMicActiva; },
+  get micFallos(){ return fallosSeguidos; },
+  micEnPausa,
   decir, aplicarPista, limpiarPistas, ponerBlip, guiarTarjeta, fallar,
   lanzarMini, ganarMini, volverDeMini, cerrarMini, LETRAS, TIPOS_MINI,
   album, idPegatina, cargarAlbum, guardarAlbum, pintarAlbum, abrirAlbum,
+  crearPerfil, entrarPerfil, borrarPerfil, mostrarPerfiles, cargarPerfiles,
+  claveDePerfil, svgAvatar, sumarPuntos, CLAVE_PERFILES, PREFIJO_PERFIL,
+  get perfiles(){ return perfiles; },
+  get perfil(){ return perfilActual; },
+  get puntos(){ return progreso.puntos || 0; },
   NIVELES, progreso, nivelAbierto, completadosEnNivel, nivelDeTema,
   recalcularDesbloqueos, marcarCategoriaCompletada, pintarHome, celebrarDesbloqueo,
-  svgForma, svgCara, ponerDibujo, CATEGORIAS_PARA_ABRIR,
+  svgForma, svgCara, ponerDibujo, CATEGORIAS_PARA_ABRIR, barajar, repartirMazo,
   AUDIO, speakWord, speakPhrase, puntuarVoz, blipReacciona, VOCES_BLIP,
   alternarAmbiente, arrancarAmbiente, agacharAmbiente, soltarAmbiente,
   nivelAmbiente, CLAVE_AMBIENTE,
