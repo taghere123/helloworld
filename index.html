@@ -48,13 +48,29 @@
   /* --- botones: nunca por debajo de 80px (requisito tactil) --- */
   --btn: clamp(80px, 17vmin, 124px);
 
+  /* --- labios 3D: TODO lo pulsable usa uno de estos tres --- */
+  --lip-1:4px;    /* fichas y muestras pequeñas */
+  --lip-2:6px;    /* botones e iconos: el caso normal */
+  --lip-3:10px;   /* tarjetas grandes de home */
+
   /* --- movimiento --- */
   --muelle:cubic-bezier(.34,1.56,.64,1);
   --suave:cubic-bezier(.4,0,.2,1);
+  --t-pulsa:.09s;                 /* hundir un boton */
+  --t-pantalla:.42s;              /* cambio de pantalla */
 
-  /* --- sombras planas por capas --- */
+  /* --- sombras planas por capas, siempre la misma familia --- */
+  --sombra-1: 0 6px 14px rgba(43,36,69,.12);
+  --sombra-2: 0 12px 22px rgba(43,36,69,.16);
+  --sombra-3: 0 18px 34px rgba(43,36,69,.20);
   --sombra-card: 0 10px 0 rgba(43,36,69,.07), 0 18px 34px rgba(43,36,69,.14);
   --sombra-flota: 0 14px 30px rgba(43,36,69,.16);
+}
+
+/* Un peque no debe marearse: si el aparato pide menos movimiento, se
+   quitan las transiciones largas y se deja todo quieto y legible. */
+@media (prefers-reduced-motion: reduce){
+  :root{ --t-pantalla:.01s; }
 }
 
 /* Un solo mundo visual a proposito: un juego para peques de 4 años no debe
@@ -82,6 +98,7 @@ body{
   background:transparent;
   min-height:100vh; min-height:100dvh;
   display:flex; flex-direction:column;
+  position:relative;            /* ancla la pantalla que se esta yendo */
 }
 
 /* ================================================================
@@ -121,7 +138,45 @@ body{
   width:100%; min-height:100vh; min-height:100dvh;
   text-align:center; position:relative;
 }
-.pantalla.activa{ display:flex; }
+.pantalla.activa{ display:flex; animation:entraPantalla var(--t-pantalla) var(--muelle) both; }
+
+/* La pantalla que se va sigue pintada un instante, flotando encima y sin
+   recibir toques, para que el cambio sea un fundido y no un corte seco. */
+.pantalla.saliendo{
+  display:flex; position:absolute; inset:0; z-index:1;
+  pointer-events:none;
+  animation:salePantalla var(--t-pantalla) var(--suave) both;
+}
+/* Entra deslizandose, pero SIN encoger: un scale menor que 1 dejaba los
+   botones por debajo de los 80px tactiles durante la transicion. El muelle
+   del easing ya da la sensacion de rebote sin tocar el tamaño. */
+@keyframes entraPantalla{
+  from{ opacity:0; transform:translateY(18px); }
+  to  { opacity:1; transform:none; }
+}
+@keyframes salePantalla{
+  from{ opacity:1; transform:none; }
+  to  { opacity:0; transform:translateY(-10px) scale(1.02); }
+}
+/* el splash no se desliza: es la portada y entra a su manera */
+#splash.activa{ animation:none; }
+
+/* la portada: Blip entra dando botes y luego respira */
+.splash-blip{
+  width:clamp(120px,30vmin,220px); height:clamp(120px,30vmin,220px);
+  animation:llegaBlip .9s var(--muelle) both, flotar 3s ease-in-out .9s infinite;
+  filter:drop-shadow(0 14px 22px rgba(43,36,69,.28));
+}
+.splash-blip svg{ width:100%; height:100%; display:block; }
+@keyframes llegaBlip{
+  0%  { transform:translateY(-70vh) scale(.5); opacity:0; }
+  55% { transform:translateY(0) scale(1.12,.88); opacity:1; }
+  75% { transform:translateY(-14%) scale(.96,1.06); }
+  100%{ transform:none; }
+}
+#splash h1{ animation:entraTitulo .5s var(--muelle) .5s both; }
+#splash .sub{ animation:entraTitulo .5s var(--muelle) .68s both; }
+#splash .play-grande{ animation:entraTitulo .5s var(--muelle) .8s both, latidoBtn 1.6s ease-in-out 1.3s infinite; }
 
 /* ---------- splash: desbloqueo de audio en iOS ---------- */
 #splash{
@@ -168,8 +223,8 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   background:var(--cielo); --lip:var(--cielo-lip);
   color:#fff;
   display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  box-shadow:0 var(--s1) 0 var(--lip), 0 12px 22px rgba(43,36,69,.18);
-  transition:transform .09s var(--suave), box-shadow .09s var(--suave), filter .15s;
+  box-shadow:0 var(--lip-2) 0 var(--lip), var(--sombra-2);
+  transition:transform var(--t-pulsa) var(--suave), box-shadow var(--t-pulsa) var(--suave), filter .15s;
 }
 .btn .ico{ font-size:clamp(1.9rem,7.6vw,3.2rem); line-height:1.05; }
 .btn .etq{
@@ -177,7 +232,7 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   letter-spacing:.04em; text-transform:uppercase; opacity:.95;
 }
 /* al pulsar el boton se hunde sobre su labio */
-.btn:active{ transform:translateY(var(--s1)); box-shadow:0 0 0 var(--lip), 0 4px 10px rgba(43,36,69,.2); }
+.btn:active{ transform:translateY(var(--lip-2)); box-shadow:0 0 0 var(--lip), var(--sombra-1); }
 .btn:focus-visible{ outline:4px solid var(--tinta); outline-offset:4px; }
 
 .btn.escuchar{ background:var(--uva);   --lip:var(--uva-lip); }
@@ -224,12 +279,13 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   position:absolute; top:max(10px, env(safe-area-inset-top)); left:12px;
   width:clamp(72px,12vmin,92px); height:clamp(72px,12vmin,92px);
   border-radius:50%; background:var(--superficie);
-  box-shadow:0 5px 0 rgba(43,36,69,.12), 0 10px 20px rgba(43,36,69,.16);
+  --lip:rgba(43,36,69,.14);
+  box-shadow:0 var(--lip-2) 0 var(--lip), var(--sombra-2);
   font-size:clamp(1.9rem,5.5vmin,2.6rem);
   display:flex; align-items:center; justify-content:center; z-index:20;
-  transition:transform .09s var(--suave), box-shadow .09s var(--suave);
+  transition:transform var(--t-pulsa) var(--suave), box-shadow var(--t-pulsa) var(--suave);
 }
-.esquina:active{ transform:translateY(4px); box-shadow:0 1px 0 rgba(43,36,69,.12); }
+.esquina:active{ transform:translateY(var(--lip-2)); box-shadow:0 0 0 var(--lip), var(--sombra-1); }
 
 /* ================================================================
    HOME — tarjetas jugosas de tema
@@ -246,12 +302,13 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--s1);
   padding:var(--s3) var(--s2);
   border-radius:var(--r-lg); background:var(--superficie);
-  box-shadow:0 var(--s1) 0 rgba(43,36,69,.12), 0 12px 22px rgba(43,36,69,.16);
+  --lip:rgba(43,36,69,.14);
+  box-shadow:0 var(--lip-2) 0 var(--lip), var(--sombra-2);
   animation:entrarCarta .45s var(--muelle) backwards;
-  transition:transform .1s var(--suave), box-shadow .1s var(--suave);
+  transition:transform var(--t-pulsa) var(--suave), box-shadow var(--t-pulsa) var(--suave);
   min-height:clamp(150px,26vh,220px);
 }
-.perfil-btn:active{ transform:translateY(var(--s1)); box-shadow:0 0 0 rgba(43,36,69,.12); }
+.perfil-btn:active{ transform:translateY(var(--lip-2)); box-shadow:0 0 0 var(--lip), var(--sombra-1); }
 .perfil-btn .cara{ width:clamp(70px,18vw,110px); height:clamp(70px,18vw,110px); display:block; }
 .perfil-btn .cara svg{ width:100%; height:100%; display:block; }
 .perfil-btn .nombre{
@@ -283,18 +340,22 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 }
 #creador .paleta{ display:flex; gap:var(--s2); flex-wrap:wrap; justify-content:center; }
 #creador .muestra{
-  width:44px; height:44px; border-radius:50%;
-  box-shadow:0 3px 0 rgba(43,36,69,.2);
+  width:48px; height:48px; border-radius:50%;
+  box-shadow:0 var(--lip-1) 0 rgba(43,36,69,.2);
+  transition:transform var(--t-pulsa) var(--muelle);
 }
+#creador .muestra:active{ transform:scale(.9); }
 #creador .muestra.elegida{ outline:4px solid var(--tinta); outline-offset:3px; }
 #creador .fila{ display:flex; gap:var(--s2); }
 #creador button{
-  min-height:52px; padding:0 var(--s4); border-radius:var(--r-full);
+  min-height:56px; padding:0 var(--s4); border-radius:var(--r-full);
   font-weight:900; color:#fff; background:var(--tinta-suave);
-  box-shadow:0 4px 0 rgba(43,36,69,.3);
+  --lip:rgba(43,36,69,.4);
+  box-shadow:0 var(--lip-2) 0 var(--lip), var(--sombra-1);
+  transition:transform var(--t-pulsa) var(--suave), box-shadow var(--t-pulsa) var(--suave);
 }
-#creador button.bien{ background:var(--menta); box-shadow:0 4px 0 var(--menta-lip); }
-#creador button:active{ transform:translateY(3px); box-shadow:none; }
+#creador button.bien{ background:var(--menta); --lip:var(--menta-lip); }
+#creador button:active{ transform:translateY(var(--lip-2)); box-shadow:0 0 0 var(--lip); }
 #btnPerfil{ padding:0; overflow:hidden; }
 #btnPerfil svg{ width:78%; height:78%; }
 #huecoPerfiles{ width:clamp(90px,20vmin,150px); height:clamp(100px,22vmin,165px); }
@@ -357,9 +418,9 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   border-radius:var(--r-xl);
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--s1);
   color:#fff; overflow:hidden;
-  box-shadow:0 var(--s2) 0 var(--lip), 0 16px 30px rgba(43,36,69,.2);
+  box-shadow:0 var(--lip-3) 0 var(--lip), var(--sombra-3);
   animation:entrarCarta .5s var(--muelle) backwards;
-  transition:transform .1s var(--suave), box-shadow .1s var(--suave);
+  transition:transform var(--t-pulsa) var(--suave), box-shadow var(--t-pulsa) var(--suave);
 }
 /* brillo diagonal suave, da volumen sin usar filtros caros */
 .tema-btn::before{
@@ -377,7 +438,7 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   font-size:clamp(.95rem,3.6vw,1.5rem); letter-spacing:.02em;
   text-shadow:0 2px 0 rgba(0,0,0,.18);
 }
-.tema-btn:active{ transform:translateY(var(--s2)); box-shadow:0 0 0 var(--lip), 0 6px 12px rgba(43,36,69,.2); }
+.tema-btn:active{ transform:translateY(var(--lip-3)); box-shadow:0 0 0 var(--lip), var(--sombra-1); }
 /* cuando Blip dice "pick one", la rejilla entera respira */
 #rejillaTemas.destacado .tema-btn{ animation:entrarCarta .5s var(--muelle) backwards, latidoCarta 1.3s ease-in-out 3; }
 @keyframes latidoCarta{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.035) } }
@@ -454,18 +515,69 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   75% { transform:scale(1.08) rotate(-2deg); }
   100%{ transform:scale(1)    rotate(0deg); }
 }
-/* tema de numeros: varios emojis en rejilla */
-#dibujo.grupo{
+/* tema de numeros: tantos objetos como dice el numero, en rejilla cuadrada.
+   El tamaño de cada objeto sale de --celda (lo calcula ponerDibujo segun
+   cuantos hay), asi que la misma regla sirve en la tarjeta, en las opciones
+   del minijuego, en el album y en el cofre. */
+.grupo{
   display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
-  gap:clamp(2px,1.4vmin,10px);
-  font-size:clamp(1.5rem,8.6vmin,4rem);
-  max-width:100%; animation:none;
+  align-content:center;
+  gap:.06em; line-height:1;
+  width:100%; height:100%; max-width:100%; padding:6%;
 }
+.grupo > span{
+  font-size:var(--celda,.4em); line-height:1;
+  animation:entraObjeto .4s var(--muelle) backwards;
+}
+@keyframes entraObjeto{
+  from{ transform:scale(0); opacity:0; }
+  to  { transform:none; opacity:1; }
+}
+#dibujo.grupo{ animation:none; font-size:clamp(4rem,24vmin,10rem); }
 #palabra{
   font-family:"Fredoka","Nunito",system-ui,sans-serif; font-weight:700;
   font-size:clamp(1.9rem,10.5vmin,4.6rem);
   letter-spacing:.06em; color:var(--tinta); margin:0;
 }
+
+/* el numero que sube da un saltito mientras cuenta */
+.subiendo{ animation:saltaNumero .45s var(--muelle); display:inline-block; }
+@keyframes saltaNumero{
+  0%{ transform:scale(1) }
+  40%{ transform:scale(1.35) }
+  100%{ transform:scale(1) }
+}
+
+/* ---------- estados vacios y cerrados: invitan, no dan pena ---------- */
+/* nadie ha jugado todavia */
+.vacio{
+  display:flex; flex-direction:column; align-items:center; gap:var(--s2);
+  padding:var(--s4) var(--s3); text-align:center;
+  color:var(--tinta-suave); font-weight:800;
+  font-size:clamp(.9rem,3.4vw,1.15rem);
+  animation:entrarCarta .5s var(--muelle) backwards;
+}
+.vacio .ico{ font-size:clamp(2.4rem,10vmin,4rem); line-height:1; animation:flotar 3s ease-in-out infinite; }
+
+/* el candado de un nivel cerrado: se ve claro que hay algo esperando */
+.nivel.cerrado .cab-nivel{ opacity:.9; }
+.nivel.cerrado .cab-nivel .ico{ animation:latidoCandado 2.6s ease-in-out infinite; }
+@keyframes latidoCandado{
+  0%,88%,100%{ transform:none }
+  92%{ transform:rotate(-9deg) }
+  96%{ transform:rotate(9deg) }
+}
+
+/* ---------- jerarquia: la accion principal se nota ---------- */
+/* el boton del que Blip habla ya brilla (.destacado). Aqui damos ademas
+   un latido MUY suave al boton principal cuando no pasa nada mas, para
+   que un peque de 4 años nunca se quede mirando sin saber que tocar. */
+.btn.principal{ animation:respiraBtn 2.8s ease-in-out infinite; }
+@keyframes respiraBtn{
+  0%,100%{ transform:none }
+  50%    { transform:scale(1.035) }
+}
+.btn.principal.destacado{ animation:latidoBtn 1s ease-in-out infinite; }
 
 /* ---------- cine de fin de nivel ---------- */
 #cine{ justify-content:center; gap:clamp(var(--s2),2.2vh,var(--s4)); overflow:hidden; }
@@ -572,7 +684,7 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 
 /* indicador de escucha continua: calmado, sin pedir que se toque nada */
 #micEstado{
-  position:absolute; top:max(10px, env(safe-area-inset-top)); right:calc(12px + clamp(56px,9vmin,72px) + 8px);
+  position:absolute; top:max(10px, env(safe-area-inset-top)); right:calc(12px + clamp(72px,12vmin,92px) + 8px);   /* justo al lado del boton de musica */
   display:flex; align-items:center; gap:6px;
   padding:6px 12px; border-radius:var(--r-full);
   background:rgba(255,255,255,.8);
@@ -754,23 +866,26 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 .btn-icono{
   width:clamp(72px,12vmin,92px); height:clamp(72px,12vmin,92px);
   border-radius:50%; background:var(--superficie);
-  box-shadow:0 5px 0 rgba(43,36,69,.12), 0 10px 20px rgba(43,36,69,.16);
+  --lip:rgba(43,36,69,.14);
+  box-shadow:0 var(--lip-2) 0 var(--lip), var(--sombra-2);
   font-size:clamp(1.9rem,5.5vmin,2.6rem);
   display:flex; align-items:center; justify-content:center;
-  transition:transform .09s var(--suave), box-shadow .09s var(--suave);
+  transition:transform var(--t-pulsa) var(--suave), box-shadow var(--t-pulsa) var(--suave);
 }
-.btn-icono:active{ transform:translateY(4px); box-shadow:0 1px 0 rgba(43,36,69,.12); }
+.btn-icono:active{ transform:translateY(var(--lip-2)); box-shadow:0 0 0 var(--lip), var(--sombra-1); }
 /* la pulsacion larga sobre una tarjeta de jugador abre las opciones del adulto */
 .perfil-btn.cargando{ animation:cargaPerfil 1.5s linear forwards; }
 @keyframes cargaPerfil{ from{ box-shadow:0 var(--s1) 0 rgba(43,36,69,.12) } to{ box-shadow:0 0 0 5px var(--fresa) } }
 
 /* boton de musica: SIEMPRE visible, en la misma esquina de todas las
    pantallas, para que el adulto pueda cortarla al instante */
+/* El boton de musica se quedaba mas pequeño que el resto de iconos y
+   rompia la fila: ahora usa la MISMA medida que la casita y el album. */
 #btnSonido{
   position:fixed; z-index:45;
   top:max(10px, env(safe-area-inset-top)); right:12px;
-  width:clamp(56px,9vmin,72px); height:clamp(56px,9vmin,72px);
-  font-size:clamp(1.4rem,4vmin,1.9rem);
+  width:clamp(72px,12vmin,92px); height:clamp(72px,12vmin,92px);
+  font-size:clamp(1.9rem,5.5vmin,2.6rem);
 }
 #btnSonido.apagado{ opacity:.55; }
 
@@ -837,7 +952,7 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   font-family:"Fredoka",sans-serif; font-weight:700;
   font-size:clamp(1.2rem,5vw,2rem); color:rgba(43,36,69,.32);
 }
-.pegatina.abierta{ background:#fff; box-shadow:0 4px 0 rgba(43,36,69,.10), 0 8px 16px rgba(43,36,69,.12); }
+.pegatina.abierta{ background:#fff; box-shadow:0 var(--lip-1) 0 rgba(43,36,69,.12), var(--sombra-1); }
 .pegatina.brillante{ background:linear-gradient(140deg,#FFF6D6,#FFE49B); box-shadow:0 0 0 3px var(--sol), 0 8px 16px rgba(223,161,0,.35); }
 .pegatina.brillante::before{
   content:"⭐"; position:absolute; top:-6px; right:-4px; font-size:.75em;
@@ -949,18 +1064,20 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 }
 
 /* --- a) TOCA EL CORRECTO --- */
+#miniZona{ gap:clamp(var(--s2),3vw,var(--s4)); }
 .opcion{
   position:relative;
-  width:clamp(88px,26vw,170px); height:clamp(88px,26vw,170px);
+  width:clamp(96px,28vw,180px); height:clamp(96px,28vw,180px);
   border-radius:var(--r-lg);
   background:var(--superficie);
-  box-shadow:0 var(--s1) 0 rgba(43,36,69,.14), 0 12px 22px rgba(43,36,69,.16);
+  --lip:rgba(43,36,69,.16);
+  box-shadow:0 var(--lip-2) 0 var(--lip), var(--sombra-2);
   display:flex; align-items:center; justify-content:center;
   font-size:clamp(2.6rem,12vmin,5rem); line-height:1;
   animation:entrarCarta .45s var(--muelle) backwards;
-  transition:transform .1s var(--suave), box-shadow .1s var(--suave);
+  transition:transform var(--t-pulsa) var(--suave), box-shadow var(--t-pulsa) var(--suave);
 }
-.opcion:active{ transform:translateY(var(--s1)); box-shadow:0 0 0 rgba(43,36,69,.14); }
+.opcion:active{ transform:translateY(var(--lip-2)); box-shadow:0 0 0 var(--lip), var(--sombra-1); }
 .opcion.mal{ animation:meneo .5s ease; }          /* fallo: meneo suave, sin castigo */
 .opcion.bien{ animation:acierto .6s var(--muelle); box-shadow:0 0 0 6px var(--menta), 0 12px 22px rgba(43,36,69,.2); }
 .opcion.ayuda{ animation:latidoBtn 1s ease-in-out infinite; box-shadow:0 0 0 6px var(--sol), 0 12px 22px rgba(43,36,69,.2); }
@@ -993,6 +1110,46 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 .arrastrable.pulsa{ animation:latir 1.1s ease-in-out infinite; }
 
 /* --- c) TRAZA CON EL DEDO --- */
+/* la guia se dibuja sola cuando Blip enseña el camino */
+#trazo .demo{
+  fill:none; stroke:var(--sol); stroke-width:7;
+  stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:400; stroke-dashoffset:400; opacity:0;
+}
+#trazo.ensenando .demo{ opacity:.95; animation:dibujaDemo 2.6s var(--suave) forwards; }
+@keyframes dibujaDemo{
+  from{ stroke-dashoffset:400; }
+  to  { stroke-dashoffset:0; }
+}
+#trazo .punto.vertice{ opacity:.55; }
+
+/* cuanto llevas trazado: se llena con muelle */
+.trazo-barra{
+  width:min(72vw,340px); height:14px; border-radius:var(--r-full);
+  background:rgba(43,36,69,.12); overflow:hidden;
+}
+.trazo-barra i{
+  display:block; height:100%; width:100%; border-radius:inherit;
+  background:linear-gradient(90deg,var(--menta),var(--cielo));
+  transform:scaleX(var(--p,0)); transform-origin:left center;
+  transition:transform .35s var(--muelle);
+}
+
+/* salida amable: aparece solo si hace falta, y nunca castiga */
+.trazo-salir{
+  display:inline-flex; align-items:center; gap:var(--s2);
+  min-height:64px; padding:0 var(--s4);
+  border-radius:var(--r-full); color:#fff;
+  background:var(--tinta-suave); --lip:rgba(43,36,69,.45);
+  box-shadow:0 var(--s1) 0 var(--lip), 0 10px 18px rgba(43,36,69,.18);
+  font-weight:900; letter-spacing:.04em; text-transform:uppercase;
+  font-size:clamp(.7rem,2.6vw,.95rem);
+  animation:entrarCarta .45s var(--muelle) backwards;
+  transition:transform .09s var(--suave), box-shadow .09s var(--suave);
+}
+.trazo-salir .ico{ font-size:1.6em; }
+.trazo-salir:active{ transform:translateY(var(--s1)); box-shadow:0 0 0 var(--lip); }
+
 #trazo{ width:min(64vw,320px); height:min(64vw,320px); touch-action:none; }
 #trazo .guia{ fill:none; stroke:rgba(43,36,69,.14); stroke-width:14; stroke-linecap:round; stroke-linejoin:round; }
 #trazo .punto{ fill:#fff; stroke:var(--uva); stroke-width:2.5; transition:none; }
@@ -1085,9 +1242,12 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
      PANTALLA 1 — SPLASH (imprescindible para desbloquear audio en iOS)
      ========================================================= -->
 <section id="splash" class="pantalla activa">
-  <div class="play-grande">▶️</div>
+  <!-- el muñeco se pinta con la MISMA funcion que los avatares de perfil,
+       asi la portada y el resto del juego van en el mismo estilo -->
+  <div class="splash-blip" id="splashBlip" aria-hidden="true"></div>
   <h1>English Fun</h1>
   <p class="sub">👆 Toca para empezar</p>
+  <div class="play-grande">▶️</div>
 </section>
 
 <!-- =========================================================
@@ -1162,7 +1322,7 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   </div>
 
   <div class="fila-controles">
-    <button class="btn escuchar" id="btnEscuchar">
+    <button class="btn escuchar principal" id="btnEscuchar">
       <span class="mano" aria-hidden="true">👇</span>
       <span class="ico">🔊</span><span class="etq">Listen</span>
       <span class="ondas" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -1708,12 +1868,21 @@ const AUDIO = {
   },
   // sonidos de criatura al tocar a Blip (nada de palabras)
   criatura: { volumen: 0.20, msEntreToques: 220 },
-  // colchon de fondo: suave, sin melodia, para que no canse
+  // Colchon de fondo: alegre pero SIN melodia. La clave para que no canse
+  // es que las notitas salen al azar de una escala que siempre suena bien,
+  // asi que nunca se forma una cancion que se te quede pegada.
   ambiente: {
-    volumen:   0.08,   // nivel normal (muy bajo a proposito)
+    volumen:   0.09,   // nivel normal (muy bajo a proposito)
     agachado:  0.30,   // a cuanto baja mientras Blip habla (30%)
     segFundido: 1.6,   // cuanto tarda en aparecer al empezar
-    segAgachar: 0.25   // suavidad al bajar y subir
+    segAgachar: 0.25,  // suavidad al bajar y subir
+    brillo:    1150,   // Hz del filtro: mas alto = mas luminoso y alegre
+    tempo:     76,     // pulsos por minuto del goteo de notas
+    chispas:   0.5,    // probabilidad de que suene cada pulso (0 = sin goteo)
+    volChispas: 0.55,  // volumen del goteo respecto al colchon
+    // escala pentatonica de DO mayor: cualquier orden suena bien, y por eso
+    // se pueden sacar al azar sin que chirrie ni suene a melodia aprendida
+    notas: [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50]
   }
 };
 
@@ -1806,6 +1975,32 @@ const CINE = {
   confeti:     [70, 45, 35]  // rafagas: al empezar, a 1/3 y a 2/3 de la escena
 };
 
+/* ================================================================
+   ⬇⬇⬇  MINIJUEGO DE TRAZAR  ⬇⬇⬇
+   Cuanto hay que trazar de verdad, y cada cuanto se echa un cable.
+   ================================================================ */
+const TRAZO = {
+  cobertura:      0.62,   // parte del camino que hay que cubrir para ganar
+  coberturaFacil: 0.42,   // a lo que baja el liston despues de la demostracion
+  radioDedo:      9,      // radio de acierto (en la caja de 100x100)
+  pasoCamino:     4.5,    // separacion entre puntos del camino: mas bajo = mas fino
+  msSinAvance:    6000,   // sin progreso: Blip enseña como se hace
+  msSalida:       10000,  // cuando aparece el boton de continuar (nunca se atasca)
+  msDemo:         2600    // lo que dura la demostracion
+};
+
+/* ================================================================
+   ⬇⬇⬇  MOVIMIENTO  ⬇⬇⬇
+   Cuanto dura cada cosa que se mueve. Si en una tablet muy justa se
+   viera a tirones, basta con bajar estos numeros (o poner 0 en
+   msPantalla para volver a los cortes secos de siempre).
+   ================================================================ */
+const MOVIMIENTO = {
+  msPantalla:  420,   // cambio de una pantalla a otra
+  msContador:  700,   // lo que tarda el marcador en subir contando
+  msSplash:    900    // entrada de Blip en la portada
+};
+
 /* Ajustes rapidos del juego */
 const AJUSTES = {
   tarjetasPorRonda: TARJETAS_POR_RONDA,
@@ -1821,6 +2016,17 @@ const AJUSTES = {
    ================================================================ */
 
 const $ = (sel) => document.querySelector(sel);
+
+/* El CSS y el JS comparten la misma duracion de transicion.
+   OJO: si el aparato pide menos movimiento, la ponemos a cero AQUI. Una
+   variable puesta en el elemento gana a cualquier @media, asi que si nos
+   limitaramos a escribirla nos cargariamos la regla de accesibilidad. */
+try{
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    MOVIMIENTO.msPantalla = 0;
+  }
+  document.documentElement.style.setProperty("--t-pantalla", MOVIMIENTO.msPantalla + "ms");
+}catch(e){}
 
 /* ---------- estado en memoria (sin localStorage) ---------- */
 const estado = {
@@ -2076,18 +2282,20 @@ function crearAmbiente(){
 
     const filtro = ctx.createBiquadFilter();
     filtro.type = "lowpass";
-    filtro.frequency.value = 520;              // quita brillo: queda mullido
+    filtro.frequency.value = AUDIO.ambiente.brillo;   // cuanto mas alto, mas alegre
     filtro.Q.value = 0.6;
     filtro.connect(oleaje);
 
-    // acorde abierto y desafinado a mano: suena vivo sin ser una cancion
-    const notas = [110, 164.81, 220, 329.63];
+    // DO mayor septima: un acorde abierto y contento. Las voces van
+    // desafinadas a mano una pizca para que el conjunto respire y no
+    // suene a sintetizador plano.
+    const notas = [130.81, 196.00, 329.63, 493.88];
     const osc = notas.map((hz, i) => {
       const o = ctx.createOscillator();
       o.type = i % 2 ? "sine" : "triangle";
       o.frequency.value = hz * (1 + (i - 1.5) * 0.0016);   // roce lento entre voces
       const g = ctx.createGain();
-      g.gain.value = i === 0 ? 0.5 : 0.26;
+      g.gain.value = i === 0 ? 0.42 : 0.22;
       o.connect(g); g.connect(filtro);
       o.start();
       return o;
@@ -2104,9 +2312,64 @@ function crearAmbiente(){
     const lfo2G = ctx.createGain(); lfo2G.gain.value = 190;
     lfo2.connect(lfo2G); lfo2G.connect(filtro.frequency); lfo2.start();
 
-    ambiente = { ctx, maestro, oleaje, filtro, osc, lfo, lfo2, conectado: true };
+    ambiente = { ctx, maestro, oleaje, filtro, osc, lfo, lfo2, conectado: true, vivo: true };
+    arrancarChispas(ambiente);
     return ambiente;
   }catch(e){ ambiente = null; return null; }
+}
+
+/* ================================================================
+   Goteo de notitas ("chispas")
+   Es lo que hace que el fondo suene alegre sin ser una cancion: cada
+   pulso puede sonar o no, y la nota se saca AL AZAR de una pentatonica.
+   Con esas dos cosas nunca se repite un motivo, asi que no se te queda
+   pegado por muchas partidas que eches. Cuelga de "oleaje", asi que el
+   boton de silencio y el agachado ante la voz le afectan igual que al
+   resto del colchon.
+   ================================================================ */
+let ultimaChispa = -1;
+
+function sonarChispa(amb){
+  const A = AUDIO.ambiente;
+  if (!A.notas || !A.notas.length) return;
+  // nunca dos veces la misma seguida: refuerza la sensacion de azar
+  let i = (Math.random() * A.notas.length) | 0;
+  if (i === ultimaChispa) i = (i + 1 + ((Math.random() * (A.notas.length - 1)) | 0)) % A.notas.length;
+  ultimaChispa = i;
+  try{
+    const ctx = amb.ctx, t0 = ctx.currentTime;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.value = A.notas[i];
+    // campanita: entra rapido y se apaga larga, como un carillon
+    const vol = Math.max(0.0002, A.volChispas);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.5);
+    // una quinta por encima, muy floja: da brillo sin ensuciar
+    const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+    o2.type = "sine"; o2.frequency.value = A.notas[i] * 1.5;
+    g2.gain.setValueAtTime(0.0001, t0);
+    g2.gain.exponentialRampToValueAtTime(vol * 0.22, t0 + 0.04);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
+    o.connect(g); g.connect(amb.oleaje);
+    o2.connect(g2); g2.connect(amb.oleaje);
+    o.start(t0); o.stop(t0 + 1.6);
+    o2.start(t0); o2.stop(t0 + 1.2);
+  }catch(e){}
+}
+
+function arrancarChispas(amb){
+  const paso = () => {
+    if (!amb.vivo || ambiente !== amb) return;         // el colchon ya no existe
+    // apagado: no se generan nodos (no gasta), pero el pulso sigue vivo
+    // para que al volver a encender no haya que esperar a nada
+    if (!ambienteApagado && Math.random() < AUDIO.ambiente.chispas) sonarChispa(amb);
+    // el pulso se mueve un poco cada vez: ni un metronomo ni un compas fijo
+    const base = 60000 / Math.max(20, AUDIO.ambiente.tempo);
+    luego(paso, base * (0.82 + Math.random() * 0.5));
+  };
+  luego(paso, 60000 / Math.max(20, AUDIO.ambiente.tempo));
 }
 
 /* nivel objetivo ahora mismo (0 si esta apagado) */
@@ -3031,18 +3294,45 @@ function coincide(dicho, objetivo, extras){
    ================================================================ */
 const HUECOS = { perfiles:"huecoPerfiles", home:"huecoHome", juego:"huecoJuego", mini:"huecoMini", final:"huecoFinal", album:"huecoAlbum", cine:"huecoCine" };
 
+let temporizadorSalida = null;
+
+/* Cambio de pantalla con fundido: la que se va se queda pintada un
+   instante por encima (sin recibir toques) y la nueva entra con muelle.
+   Si algo fallara, el peor caso es un corte seco como antes: nunca se
+   queda una pantalla a medias, porque siempre hay UNA sola con "activa". */
 function mostrarPantalla(id){
-  document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
+  const anterior = document.querySelector(".pantalla.activa");
+  document.querySelectorAll(".pantalla").forEach(p => {
+    p.classList.remove("activa", "saliendo");
+  });
+
+  // el splash no se despide: desaparece y ya
+  if (anterior && anterior.id !== id && anterior.id !== "splash" && MOVIMIENTO.msPantalla > 0){
+    anterior.classList.add("saliendo");
+    cancelar(temporizadorSalida);
+    temporizadorSalida = luego(() => {
+      temporizadorSalida = null;
+      anterior.classList.remove("saliendo");
+    }, MOVIMIENTO.msPantalla);
+  }
+
   const p = document.getElementById(id);
-  if (p) p.classList.add("activa");
+  if (p){ p.classList.remove("saliendo"); p.classList.add("activa"); }
   estado.pantalla = id;
   if (HUECOS[id]) mudarBlip(HUECOS[id]);   // Blip acompaña SIEMPRE
+}
+
+/* al cortarlo todo no puede quedar ninguna pantalla fantasma flotando */
+function limpiarSalientes(){
+  cancelar(temporizadorSalida); temporizadorSalida = null;
+  document.querySelectorAll(".pantalla.saliendo").forEach(p => p.classList.remove("saliendo"));
 }
 
 /* Corta TODO lo que este en marcha. Se llama en cada salida de pantalla:
    temporizadores, voz, microfono, pistas, minijuego y confeti. */
 function pararTodo(){
   cancelarTemporizadores();
+  limpiarSalientes();              // ninguna pantalla se queda a medio irse
   cineTemp = null;                 // la peli se corta como cualquier otra cosa
   temporizadorAvance = null; temporizadorGuia = null; temporizadorSaludo = null; temporizadorBlip = null;
   cerrarMini();
@@ -3179,9 +3469,28 @@ function svgCara(nombre){
 /* pinta el dibujo de una palabra: figura, carita o emoji */
 function ponerDibujo(el, palabra){
   if (!el) return;
-  el.classList.remove("con-svg");
+  el.classList.remove("con-svg", "grupo");
+  el.style.removeProperty("--celda");
   if (palabra.forma){ el.classList.add("con-svg"); el.innerHTML = svgForma(palabra.forma); return; }
   if (palabra.cara){  el.classList.add("con-svg"); el.innerHTML = svgCara(palabra.cara);  return; }
+
+  // NUMEROS: lo que se aprende es la cantidad, asi que se pintan TANTOS
+  // objetos como dice el numero. Antes esto solo pasaba en la tarjeta y en
+  // el minijuego de tocar salia un unico icono: no habia nada que contar.
+  if (palabra.cantidad && palabra.cantidad > 1){
+    el.classList.add("grupo");
+    el.textContent = "";
+    // la rejilla se cuadra sola: 4 cosas en 2x2, 9 en 3x3, 20 en 5x5...
+    const lado = Math.ceil(Math.sqrt(palabra.cantidad));
+    el.style.setProperty("--celda", (0.92 / lado).toFixed(3) + "em");
+    for (let i = 0; i < palabra.cantidad; i++){
+      const s = document.createElement("span");
+      s.textContent = palabra.emoji;
+      s.style.animationDelay = (i * 45) + "ms";
+      el.appendChild(s);
+    }
+    return;
+  }
   el.textContent = palabra.emoji;
 }
 
@@ -3450,19 +3759,10 @@ function pintarTarjeta(){
   tarjeta.style.background = t.fondo || "";
   palabra.style.color = t.texto || "";
 
-  // numeros: repetimos el emoji "cantidad" veces
-  if (t.cantidad && t.cantidad > 1){
-    dibujo.className = "grupo";
-    dibujo.textContent = "";
-    for (let i = 0; i < t.cantidad; i++){
-      const e = document.createElement("span");
-      e.textContent = t.emoji;
-      dibujo.appendChild(e);
-    }
-  } else {
-    dibujo.className = "";
-    ponerDibujo(dibujo, t);
-  }
+  // los numeros se pintan como grupo de objetos; de eso ya se encarga
+  // ponerDibujo, que es el mismo camino que usan album y minijuegos
+  dibujo.className = "";
+  ponerDibujo(dibujo, t);
 
   palabra.textContent = t.en;
 
@@ -3765,8 +4065,13 @@ function lanzarMini(tipoForzado){
   else if (tipo === "trazar")     montarTrazar(palabra);
   else                            montarBurbujas();
 
-  // red de seguridad: ningun minijuego puede dejar al peque encerrado
-  if (tipo !== "burbujas") luego(() => { if (miniActivo && !miniActivo.ganado) ganarMini(true); }, MS_RESCATE_MINI);
+  // Red de seguridad: ningun minijuego puede dejar al peque encerrado.
+  // El trazo queda fuera A PROPOSITO: ahi el rescate regalaba la victoria
+  // sin haber trazado nada. Tiene su propia salida (demostracion + boton
+  // de continuar), que se monta en montarTrazar.
+  if (tipo !== "burbujas" && tipo !== "trazar"){
+    luego(() => { if (miniActivo && !miniActivo.ganado) ganarMini(true); }, MS_RESCATE_MINI);
+  }
 }
 
 /* limpia la pantalla de minijuego (la llama tambien pararTodo) */
@@ -3942,7 +4247,13 @@ function huecoBajoElDedo(x, y, huecos){
   return mejor;
 }
 
-/* ---------------- c) TRAZA CON EL DEDO ---------------- */
+/* ---------------- c) TRAZA CON EL DEDO ----------------
+   Antes se ganaba tocando dos o tres esquinas: los puntos guia eran solo
+   los vertices de la letra, y con letras cortas (L, T, V) bastaban dos
+   toques sueltos. Ahora el camino se rellena de puntos intermedios y se
+   mide CUANTO camino se ha cubierto, asi que hay que recorrerlo de verdad.
+   Y para que eso no encierre a nadie, si el peque se atasca Blip le enseña
+   como se hace, el liston baja, y acaba apareciendo un boton de continuar. */
 function montarTrazar(objetivo){
   const z = $("#miniZona");
   const letra = (objetivo.en[0] || "O").toUpperCase();
@@ -3959,58 +4270,161 @@ function montarTrazar(objetivo){
   texto.textContent = letra;
   svg.appendChild(texto);
 
-  const puntos = [];
+  // guia gris de fondo + copia que se dibuja sola en la demostracion
   trazos.forEach(tr => {
+    const puntosAttr = tr.map(p => p.join(",")).join(" ");
     const linea = document.createElementNS(NS, "polyline");
     linea.setAttribute("class", "guia");
-    linea.setAttribute("points", tr.map(p => p.join(",")).join(" "));
+    linea.setAttribute("points", puntosAttr);
     svg.appendChild(linea);
+
+    const demo = document.createElementNS(NS, "polyline");
+    demo.setAttribute("class", "demo");
+    demo.setAttribute("points", puntosAttr);
+    svg.appendChild(demo);
   });
+
+  // El camino se rellena con puntos cada TRAZO.pasoCamino unidades. Cubrir
+  // ese camino exige arrastrar el dedo: con toques sueltos no se llega.
+  const puntos = [];
   trazos.forEach(tr => {
-    tr.forEach(p => {
-      const c = document.createElementNS(NS, "circle");
-      c.setAttribute("class", "punto");
-      c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", 5.5);
-      svg.appendChild(c);
-      puntos.push({ el: c, x: p[0], y: p[1], on: false });
-    });
+    for (let i = 0; i < tr.length - 1; i++){
+      const a = tr[i], b = tr[i + 1];
+      const largo = Math.sqrt((b[0]-a[0])*(b[0]-a[0]) + (b[1]-a[1])*(b[1]-a[1]));
+      const trozos = Math.max(1, Math.round(largo / TRAZO.pasoCamino));
+      for (let k = 0; k < trozos; k++){
+        const t = k / trozos;
+        puntos.push({ x: a[0] + (b[0]-a[0]) * t, y: a[1] + (b[1]-a[1]) * t, vertice: k === 0 });
+      }
+    }
+    const ult = tr[tr.length - 1];
+    puntos.push({ x: ult[0], y: ult[1], vertice: true });
+  });
+
+  puntos.forEach(p => {
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("class", "punto" + (p.vertice ? " vertice" : ""));
+    c.setAttribute("cx", p.x); c.setAttribute("cy", p.y);
+    c.setAttribute("r", p.vertice ? 3.4 : 2.2);
+    svg.appendChild(c);
+    p.el = c; p.on = false;
   });
   z.appendChild(svg);
 
+  // barra de "cuanto llevas": el peque ve que avanza aunque no sepa leer
+  const barra = document.createElement("div");
+  barra.className = "trazo-barra";
+  barra.innerHTML = '<i></i>';
+  z.appendChild(barra);
+
   const total = puntos.length;
-  let encendidos = 0, trazando = false;
+  let encendidos = 0, arrastrados = 0, trazando = false, meta = TRAZO.cobertura;
+  let ultimoAvance = Date.now(), demoHecha = false;
+  let vigilante = null, tempSalida = null;
 
-  // se acepta con el 60%: un peque de 4 años no traza fino, y aqui premiamos
-  // el intento, no la punteria
-  const meta = Math.max(2, Math.ceil(total * 0.6));
+  function pintarAvance(){
+    const r = Math.min(1, encendidos / (total * meta));
+    barra.style.setProperty("--p", r.toFixed(3));
+  }
 
-  function mirar(ev){
+  /* Blip enseña el camino: la guia se dibuja sola de principio a fin */
+  function demostrar(){
+    if (!miniActivo || miniActivo.ganado || demoHecha) return;
+    demoHecha = true;
+    meta = TRAZO.coberturaFacil;        // ademas le bajamos el liston
+    pintarAvance();
+    svg.classList.remove("ensenando"); void svg.getBoundingClientRect();
+    svg.classList.add("ensenando");
+    ponerBlip("hablando", TRAZO.msDemo);
+    aplicarPista("mini-trazo");
+    callar();
+    speakPhrase("Like this! Follow the line.", "mini-trazo");
+    luego(() => svg.classList.remove("ensenando"), TRAZO.msDemo);
+  }
+
+  /* Si pasa el rato sin avanzar, se enseña. No se gana solo: eso era el bug. */
+  function vigilar(){
+    if (!miniActivo || miniActivo.ganado) return;
+    if (Date.now() - ultimoAvance >= TRAZO.msSinAvance) demostrar();
+    vigilante = luego(vigilar, 1000);
+  }
+  vigilante = luego(vigilar, 1000);
+
+  /* Salida amable: pase lo que pase, siempre hay por donde salir. */
+  tempSalida = luego(() => {
+    if (!miniActivo || miniActivo.ganado) return;
+    if (z.querySelector(".trazo-salir")) return;
+    const b = document.createElement("button");
+    b.className = "trazo-salir";
+    b.type = "button";
+    b.innerHTML = '<span class="ico">👉</span><span class="etq">Continue</span>';
+    b.addEventListener("click", () => {
+      if (!miniActivo || miniActivo.ganado) return;
+      sonidos.toque();
+      ganarMini(true);                 // salir nunca es un castigo
+    });
+    z.appendChild(b);
+  }, TRAZO.msSalida);
+
+  /* arrastre = true mientras el dedo se mueve. Al POSAR el dedo solo se
+     enciende el punto mas cercano: asi aporrear la pantalla a toquecitos
+     no rellena el camino, hay que recorrerlo. */
+  function mirar(ev, arrastre){
     const r = svg.getBoundingClientRect();
     const x = (ev.clientX - r.left) / r.width * 100;
     const y = (ev.clientY - r.top) / r.height * 100;
-    puntos.forEach(p => {
-      if (p.on) return;
-      const d = Math.sqrt((x-p.x)*(x-p.x) + (y-p.y)*(y-p.y));
-      if (d < 16){                       // radio generoso
-        p.on = true; encendidos++;
-        p.el.classList.add("on");
-        tocarNotas([[520 + encendidos * 60, 0, .07]], "sine", .10);
+    let nuevos = 0;
+    if (arrastre){
+      puntos.forEach(p => {
+        if (p.on) return;
+        const d = Math.sqrt((x-p.x)*(x-p.x) + (y-p.y)*(y-p.y));
+        if (d < TRAZO.radioDedo){
+          p.on = true; encendidos++; nuevos++;
+          p.el.classList.add("on");
+        }
+      });
+    } else {
+      let cerca = null, mejor = TRAZO.radioDedo;
+      puntos.forEach(p => {
+        if (p.on) return;
+        const d = Math.sqrt((x-p.x)*(x-p.x) + (y-p.y)*(y-p.y));
+        if (d < mejor){ mejor = d; cerca = p; }
+      });
+      if (cerca){ cerca.on = true; encendidos++; nuevos++; cerca.el.classList.add("on"); }
+    }
+    if (arrastre) arrastrados += nuevos;
+    if (nuevos){
+      ultimoAvance = Date.now();
+      pintarAvance();
+      // una notita cada pocos puntos: suena a progreso, no a metralleta
+      if (encendidos % 3 === 0){
+        tocarNotas([[520 + Math.min(encendidos, 26) * 26, 0, .07]], "sine", .09);
       }
-    });
-    if (encendidos >= meta) ganarMini();
+    }
+    // Ademas de cubrir el camino, la mayor parte tiene que venir de ARRASTRAR.
+    // Si no, dando toquecitos punto por punto se podia completar la letra sin
+    // haberla trazado ni una vez.
+    const bastante = encendidos >= Math.max(2, Math.ceil(total * meta));
+    const trazadoDeVerdad = arrastrados >= encendidos * 0.6;
+    if (bastante && trazadoDeVerdad){
+      cancelar(vigilante); vigilante = null;
+      cancelar(tempSalida); tempSalida = null;
+      ganarMini();
+    }
   }
 
   svg.addEventListener("pointerdown", (ev) => {
     if (!miniActivo || miniActivo.ganado) return;
     trazando = true;
     try{ svg.setPointerCapture(ev.pointerId); }catch(e){}
-    mirar(ev); ev.preventDefault();
+    mirar(ev, false); ev.preventDefault();
   });
-  svg.addEventListener("pointermove", (ev) => { if (trazando) mirar(ev); });
+  svg.addEventListener("pointermove", (ev) => { if (trazando) mirar(ev, true); });
   const fin = () => { trazando = false; };      // lo encendido NO se pierde
   svg.addEventListener("pointerup", fin);
   svg.addEventListener("pointercancel", fin);
 
+  pintarAvance();
   speakPhrase("Trace the " + letra + "!", "mini-trazo");
 }
 
@@ -4206,7 +4620,14 @@ function pintarPerfiles(){
     b.querySelector(".nombre").textContent = p.nombre;
     const caja = leerJSON(claveDePerfil(p.id));
     const pts = (caja && caja.puntos) || 0;
-    b.querySelector(".puntos").textContent = "⭐ " + pts;
+    const elPts = b.querySelector(".puntos");
+    elPts.textContent = "⭐ 0";
+    const num = document.createElement("span");
+    // el ⭐ se queda quieto y solo baila el numero
+    elPts.textContent = "⭐ ";
+    num.textContent = "0";
+    elPts.appendChild(num);
+    contarHasta(num, 0, pts, MOVIMIENTO.msContador);
     b.addEventListener("click", () => { sonidos.toque(); entrarPerfil(p.id); });
     // Opciones de adulto: mantener pulsada la tarjeta 1,5s. Antes esto vivia
     // en un engranaje que confundia (un toque corto no hacia nada).
@@ -4285,6 +4706,26 @@ function pintarAvatarPerfil(){
 function sumarPuntos(n){
   progreso.puntos = (progreso.puntos || 0) + n;
   guardarAlbum();
+}
+
+/* Los numeros suben contando en vez de saltar de golpe: se nota el
+   premio y da tiempo a verlo. Va con requestAnimationFrame, que es
+   gratis comparado con un temporizador por numero. */
+function contarHasta(el, desde, hasta, ms){
+  if (!el) return;
+  const dur = ms == null ? MOVIMIENTO.msContador : ms;
+  if (dur <= 0 || desde === hasta){ el.textContent = String(hasta); return; }
+  const t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+  el.classList.remove("subiendo"); void el.offsetWidth; el.classList.add("subiendo");
+  function paso(ahora){
+    const t = Math.min(1, ((ahora || Date.now()) - t0) / dur);
+    // frenada suave al final: engancha mas que un conteo lineal
+    const suave = 1 - Math.pow(1 - t, 3);
+    el.textContent = String(Math.round(desde + (hasta - desde) * suave));
+    if (t < 1) requestAnimationFrame(paso);
+    else { el.textContent = String(hasta); el.classList.remove("subiendo"); }
+  }
+  requestAnimationFrame(paso);
 }
 
 /* ================================================================
@@ -4369,13 +4810,28 @@ function totalPegatinas(){ return TEMAS.reduce((n, t) => n + t.palabras.length, 
 
 function pintarContadorAlbum(){
   const c = $("#contadorAlbum");
-  if (c) c.textContent = pegatinasGanadas();
+  if (!c) return;
+  const antes = parseInt(c.textContent, 10);
+  const ahora = pegatinasGanadas();
+  // solo cuenta cuando SUBE: al cambiar de perfil o al borrar, salta y ya
+  if (!isNaN(antes) && ahora > antes) contarHasta(c, antes, ahora);
+  else c.textContent = ahora;
 }
 
 /* dibuja el album entero: una seccion por tema */
 function pintarAlbum(){
   const cont = $("#listaAlbum");
   cont.innerHTML = "";
+
+  // album a estrenar: mejor una invitacion que una pared de siluetas
+  if (pegatinasGanadas() === 0){
+    const v = document.createElement("div");
+    v.className = "vacio";
+    v.innerHTML = '<span class="ico">✨</span>' +
+                  '<span>Tu álbum está esperando</span>' +
+                  '<span style="opacity:.8">Juega una categoría y consigue tu primera pegatina</span>';
+    cont.appendChild(v);
+  }
   NIVELES.forEach((nivel, iNivel) => {
     const cabN = document.createElement("div");
     cabN.className = "cab-nivel";
@@ -4732,6 +5188,14 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+/* la portada usa el mismo dibujo que los avatares: un solo estilo */
+try{
+  const sb = $("#splashBlip");
+  // amarillo: el fondo de la portada ya es morado, y un muñeco morado
+  // sobre morado no se veia
+  if (sb) sb.innerHTML = svgAvatar("#FFC93C");
+}catch(e){}
+
 /* ---------- ganchos para pruebas automaticas (no afectan al juego) ---------- */
 window.__juego = {
   TEMAS, AJUSTES, FRASES, estado,
@@ -4743,6 +5207,7 @@ window.__juego = {
   micEnPausa,
   decir, aplicarPista, limpiarPistas, ponerBlip, guiarTarjeta, fallar,
   lanzarMini, ganarMini, volverDeMini, cerrarMini, LETRAS, TIPOS_MINI,
+  TRAZO,
   album, idPegatina, cargarAlbum, guardarAlbum, pintarAlbum, abrirAlbum,
   crearPerfil, entrarPerfil, borrarPerfil, mostrarPerfiles, cargarPerfiles,
   claveDePerfil, svgAvatar, sumarPuntos, CLAVE_PERFILES, PREFIJO_PERFIL,
@@ -4756,7 +5221,8 @@ window.__juego = {
   AUDIO, speakWord, speakPhrase, puntuarVoz, blipReacciona, VOCES_BLIP,
   SONIDOS_TARJETA, MOTORES_SONIDO, tipoDeSonido, sonarIcono, tono, ruido,
   alternarAmbiente, arrancarAmbiente, agacharAmbiente, soltarAmbiente,
-  nivelAmbiente, CLAVE_AMBIENTE, soltarAmbienteDelTodo,
+  nivelAmbiente, CLAVE_AMBIENTE, soltarAmbienteDelTodo, sonarChispa,
+  __filtroTest(hz){ if (ambiente) ambiente.filtro.frequency.value = hz; },
   get ambienteAgachado(){ return ambienteAgachado; },
   get ambienteApagado(){ return ambienteApagado; },
   get ambienteVivo(){ return !!ambiente; },
@@ -4765,7 +5231,8 @@ window.__juego = {
   ambienteNodo(){ return ambiente ? ambiente.maestro : null; },
   get ambienteOsciladores(){ return ambiente ? ambiente.osc.length : 0; },
   get desbloqueoPendiente(){ return pendienteDesbloqueo; },
-  CINE, reproducirCine, cerrarCine, resaltarNivel, irACasa,
+  CINE, reproducirCine, cerrarCine, resaltarNivel, irACasa, MOVIMIENTO, contarHasta,
+  pintarContadorAlbum,
   get cinePendiente(){ return pendienteCine; },
   set cinePendiente(v){ pendienteCine = v; },
   montarCofre, abrirCofre, elegirPremio, borrarAlbum, CLAVE_ALBUM,
