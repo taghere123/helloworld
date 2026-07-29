@@ -441,6 +441,18 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   font-size:clamp(4rem,24vmin,10rem); line-height:1;
   animation:flotar 3s ease-in-out infinite;
   filter:drop-shadow(0 6px 8px rgba(43,36,69,.18));
+  cursor:pointer; user-select:none; -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+/* brinco al tocar el icono. Gana a la flotacion y al "animation:none"
+   de la rejilla de numeros por especificidad (dos clases + id). */
+#dibujo.rebote, #dibujo.grupo.rebote{ animation:botaIcono .55s var(--muelle); }
+@keyframes botaIcono{
+  0%  { transform:scale(1)    rotate(0deg); }
+  25% { transform:scale(1.22) rotate(-7deg); }
+  50% { transform:scale(.93)  rotate(5deg); }
+  75% { transform:scale(1.08) rotate(-2deg); }
+  100%{ transform:scale(1)    rotate(0deg); }
 }
 /* tema de numeros: varios emojis en rejilla */
 #dibujo.grupo{
@@ -453,6 +465,102 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   font-family:"Fredoka","Nunito",system-ui,sans-serif; font-weight:700;
   font-size:clamp(1.9rem,10.5vmin,4.6rem);
   letter-spacing:.06em; color:var(--tinta); margin:0;
+}
+
+/* ---------- cine de fin de nivel ---------- */
+#cine{ justify-content:center; gap:clamp(var(--s2),2.2vh,var(--s4)); overflow:hidden; }
+/* rayos de fiesta: un solo elemento girando, baratisimo de pintar */
+#cine .rayos{
+  position:absolute; inset:-50%; z-index:0; pointer-events:none; opacity:.5;
+  background:repeating-conic-gradient(from 0deg,
+    rgba(255,214,10,.28) 0deg 9deg, rgba(255,255,255,0) 9deg 18deg);
+  animation:girarRayos 24s linear infinite;
+}
+@keyframes girarRayos{ to{ transform:rotate(360deg); } }
+#cine > *:not(.rayos){ position:relative; z-index:1; }
+
+.cine-titulo{
+  font-family:"Fredoka","Nunito",system-ui,sans-serif; font-weight:700;
+  font-size:clamp(1.5rem,6.4vmin,2.9rem); color:var(--tinta);
+  margin:0; text-align:center; line-height:1.1;
+  animation:entraTitulo .6s var(--muelle) both;
+}
+.cine-sub{
+  margin:0; text-align:center; font-weight:700; color:var(--tinta);
+  opacity:.72; font-size:clamp(.85rem,3.2vmin,1.15rem);
+  animation:entraTitulo .6s var(--muelle) .12s both;
+}
+@keyframes entraTitulo{
+  from{ transform:translateY(-28px) scale(.7); opacity:0; }
+  to  { transform:none; opacity:1; }
+}
+
+.cine-trofeo{ position:relative; font-size:clamp(2.4rem,11vmin,4.6rem); line-height:1; }
+.cine-trofeo .premio{ display:inline-block; animation:subeTrofeo .8s var(--muelle) .2s both, flotar 2.6s ease-in-out 1s infinite; }
+@keyframes subeTrofeo{
+  from{ transform:translateY(40px) scale(.2) rotate(-25deg); opacity:0; }
+  to  { transform:none; opacity:1; }
+}
+.cine-trofeo .destello{
+  position:absolute; font-size:.42em; opacity:0;
+  animation:chispear 1.5s ease-in-out infinite;
+}
+.cine-trofeo .d1{ left:-.55em; top:.1em;  animation-delay:.5s; }
+.cine-trofeo .d2{ right:-.5em; top:-.1em; animation-delay:.9s; }
+.cine-trofeo .d3{ right:-.3em; bottom:0;  animation-delay:1.3s; }
+@keyframes chispear{
+  0%,100%{ opacity:0; transform:scale(.4) rotate(0deg); }
+  45%    { opacity:1; transform:scale(1.15) rotate(20deg); }
+}
+
+/* medallitas: los iconos de las categorias conseguidas */
+.cine-medallas{ display:flex; flex-wrap:wrap; justify-content:center; gap:clamp(6px,1.6vw,12px); }
+.cine-medallas span{
+  display:grid; place-items:center;
+  width:clamp(34px,8.4vmin,52px); height:clamp(34px,8.4vmin,52px);
+  border-radius:var(--r-full); background:#fff; box-shadow:var(--sombra-1);
+  font-size:clamp(1rem,4.4vmin,1.7rem);
+  animation:entraMedalla .5s var(--muelle) both;
+}
+@keyframes entraMedalla{
+  from{ transform:scale(0) rotate(-90deg); opacity:0; }
+  to  { transform:none; opacity:1; }
+}
+
+/* escenario de avatares: el del jugador actual, mas grande y delante.
+   Blip cabe a la derecha, del tamaño de un jugador mas: nunca tapa nada. */
+.cine-escena{ display:flex; align-items:flex-end; justify-content:center; gap:clamp(4px,2vw,16px); max-width:100%; }
+#huecoCine{ flex:0 0 auto; width:clamp(52px,13vmin,104px); height:clamp(58px,14vmin,114px); }
+.cine-elenco{ display:flex; align-items:flex-end; justify-content:center; gap:clamp(4px,2.2vw,18px); }
+.cine-actor{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+.cine-actor .muneco{
+  width:clamp(46px,13vmin,86px); height:clamp(46px,13vmin,86px);
+  animation:brincaActor 1.05s ease-in-out infinite;
+}
+.cine-actor .muneco svg{ width:100%; height:100%; display:block; }
+.cine-actor .quien{
+  font-weight:700; font-size:clamp(.6rem,2.4vmin,.9rem); color:var(--tinta);
+  max-width:11ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.cine-actor.protagonista .muneco{ width:clamp(66px,19vmin,124px); height:clamp(66px,19vmin,124px); }
+.cine-actor.protagonista .quien{ font-size:clamp(.72rem,3vmin,1.05rem); }
+@keyframes brincaActor{
+  0%,100%{ transform:translateY(0)     scale(1,1); }
+  25%    { transform:translateY(-16%)  scale(.96,1.06) rotate(-5deg); }
+  50%    { transform:translateY(-30%)  scale(1.02,1.02); }
+  75%    { transform:translateY(-6%)   scale(1.05,.94) rotate(5deg); }
+}
+
+/* el boton de seguir SIEMPRE se puede pulsar: entra con opacidad, nunca
+   bloquea el paso ni se queda escondido detras de la animacion */
+#btnCine{ opacity:0; transition:opacity .35s ease; }
+#cine.listo #btnCine{ opacity:1; }
+
+/* si el aparato pide menos movimiento, se queda la escena quieta y legible */
+@media (prefers-reduced-motion: reduce){
+  #cine .rayos{ animation:none; }
+  .cine-actor .muneco, .cine-trofeo .premio, .cine-trofeo .destello{ animation:none; }
+  .cine-trofeo .destello{ opacity:.9; }
 }
 
 /* ---------- fila de botones ---------- */
@@ -652,15 +760,9 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   transition:transform .09s var(--suave), box-shadow .09s var(--suave);
 }
 .btn-icono:active{ transform:translateY(4px); box-shadow:0 1px 0 rgba(43,36,69,.12); }
-/* el engranaje es para el adulto: pequeño, apagado y con pulsacion larga */
-#btnAjustes{
-  width:clamp(44px,7vmin,56px); height:clamp(44px,7vmin,56px);
-  font-size:clamp(1rem,2.6vmin,1.3rem);
-  opacity:.35; align-self:flex-start;
-  box-shadow:0 3px 0 rgba(43,36,69,.10);
-}
-#btnAjustes.cargando{ animation:cargaAjustes 1.5s linear forwards; }
-@keyframes cargaAjustes{ from{ opacity:.35; transform:scale(1) } to{ opacity:1; transform:scale(1.25) } }
+/* la pulsacion larga sobre una tarjeta de jugador abre las opciones del adulto */
+.perfil-btn.cargando{ animation:cargaPerfil 1.5s linear forwards; }
+@keyframes cargaPerfil{ from{ box-shadow:0 var(--s1) 0 rgba(43,36,69,.12) } to{ box-shadow:0 0 0 5px var(--fresa) } }
 
 /* boton de musica: SIEMPRE visible, en la misma esquina de todas las
    pantallas, para que el adulto pueda cortarla al instante */
@@ -928,6 +1030,16 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   #juego, #mini{ padding-bottom:clamp(96px,19vmin,168px); }
 }
 @media (orientation:landscape){
+  /* en apaisado hay poca altura: la escena se compacta para que el boton
+     de continuar SIEMPRE quepa entero en pantalla */
+  #cine{ gap:clamp(2px,1vh,10px); padding-block:clamp(4px,2vh,16px); }
+  .cine-titulo{ font-size:clamp(1.1rem,5.4vh,2.2rem); }
+  .cine-sub{ font-size:clamp(.7rem,2.6vh,1rem); }
+  .cine-trofeo{ font-size:clamp(1.6rem,9vh,3.4rem); }
+  .cine-medallas span{ width:clamp(26px,7vh,44px); height:clamp(26px,7vh,44px); font-size:clamp(.8rem,3.6vh,1.4rem); }
+  .cine-actor .muneco{ width:clamp(34px,11vh,72px); height:clamp(34px,11vh,72px); }
+  .cine-actor.protagonista .muneco{ width:clamp(46px,16vh,104px); height:clamp(46px,16vh,104px); }
+  #huecoCine{ width:clamp(38px,11vh,84px); height:clamp(42px,12vh,92px); }
   #rejillaTemas{ width:min(100%,1040px); }
   .nivel .rejilla{ grid-template-columns:repeat(4,minmax(0,1fr)); }
   .tema-btn{ min-height:clamp(96px,28vh,200px); }
@@ -1007,8 +1119,6 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   <div id="barraHome">
     <button class="btn-icono" id="btnPerfil" aria-label="Cambiar de jugador"></button>
     <button class="btn-icono" id="btnAlbum" aria-label="Álbum">📖<span id="contadorAlbum">0</span></button>
-    <!-- engranaje para el adulto: hay que mantenerlo pulsado 1,5s -->
-    <button class="btn-icono" id="btnAjustes" aria-label="Ajustes">⚙️</button>
   </div>
   <div id="cabeceraHome">
     <div class="hueco-blip" id="huecoHome"></div>
@@ -1096,6 +1206,34 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 </section>
 
 <!-- =========================================================
+     CINE DE FIN DE NIVEL — los AVATARES de los perfiles celebran.
+     Ni camara ni fotos: solo los muñecos que se eligen al crear jugador.
+     ========================================================= -->
+<section id="cine" class="pantalla">
+  <div class="rayos" aria-hidden="true"></div>
+
+  <h2 class="cine-titulo" id="cineTitulo">LEVEL COMPLETE!</h2>
+  <p class="cine-sub" id="cineSub"></p>
+
+  <div class="cine-trofeo" id="cineTrofeo" aria-hidden="true">
+    <span class="premio">🏆</span>
+    <span class="destello d1">✨</span><span class="destello d2">⭐</span><span class="destello d3">✨</span>
+  </div>
+
+  <div class="cine-medallas" id="cineMedallas" aria-hidden="true"></div>
+
+  <!-- escenario: los avatares de los jugadores y Blip animando al lado -->
+  <div class="cine-escena">
+    <div class="cine-elenco" id="cineElenco"></div>
+    <div class="hueco-blip" id="huecoCine"></div>
+  </div>
+
+  <button class="btn" id="btnCine" style="background:var(--menta);--lip:var(--menta-lip)">
+    <span class="ico">👉</span><span class="etq">Continue</span>
+  </button>
+</section>
+
+<!-- =========================================================
      BLIP — una sola instancia; el JS la muda a la pantalla activa
      ========================================================= -->
 <div id="blip" class="blip idle" role="img" aria-label="Blip">
@@ -1164,10 +1302,10 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 
 <div id="confeti"></div>
 
-<!-- dialogo de ajustes: solo lo abre un adulto (pulsacion larga en ⚙️) -->
+<!-- dialogo de ajustes: solo lo abre un adulto (pulsacion larga en un jugador) -->
 <div id="dialogo" role="dialog" aria-modal="true">
   <div class="caja">
-    <p><strong>Borrar el álbum</strong><br>Se perderán todas las pegatinas conseguidas.</p>
+    <p><strong>Opciones de <span id="dialogoQuien"></span></strong><br>Se perderá el progreso guardado.</p>
     <p id="avisoAlmacen" hidden>⚠️ Este navegador no guarda el progreso: el álbum se borrará al cerrar la página.</p>
     <div class="fila">
       <button id="btnCancelarBorrado">Cancelar</button>
@@ -1542,7 +1680,12 @@ const FRASES = {
   animos:  ["Try again!", "Almost!", "So close!", "One more time!", "You can do it!"],
   final:   ["You finished! Amazing!", "All done! Fantastic!", "You finished it! Woohoo!"],
   cerrado: ["Finish a few more to unlock this!", "Play a bit more to open this!"],
-  abierto: ["New worlds unlocked!", "New worlds are open!"]
+  abierto: ["New worlds unlocked!", "New worlds are open!"],
+  // fin de nivel: el momento mas grande del juego
+  nivelHecho: ["Level complete! You are a star!", "You finished the whole level! Wow!",
+               "Level done! Amazing work!", "You did the whole level! Fantastic!"],
+  nivelNuevo: ["A brand new level! Let's go!", "New level unlocked! Woohoo!",
+               "A new level is open! Come on!"]
 };
 
 /* ================================================================
@@ -1574,10 +1717,98 @@ const AUDIO = {
   }
 };
 
+
+/* ================================================================
+   ⬇⬇⬇  SONIDOS DE LOS ICONOS DE LA TARJETA  ⬇⬇⬇
+   Al tocar el dibujo grande de la tarjeta suena LO QUE HACE esa cosa
+   (el pato hace cuac, el coche hace ruum...). Nada de voz: eso sigue
+   siendo cosa del boton 🔊.
+   Para cambiarlo solo hay que tocar este mapa: palabra -> nombre de
+   sonido. Los nombres validos son las claves de MOTORES_SONIDO (mas
+   abajo, en la maquinaria): cuac, miau, mu, guau, oink, bee, relincho,
+   rugido, trompeta, mono, pio, croac, zumbido, siseo, chillido,
+   burbujas, ballena, motor, sirena, tren, helice, despegue, barco,
+   timbre, trueno, lluvia, viento, crujido, sorbo, nam, pop, chispa.
+   ================================================================ */
+const SONIDOS_TARJETA = {
+  volumen:       0.26,   // nivel de estos efectos (0 a 1)
+  msEntreToques: 260,    // antirrebote: toques mas seguidos se ignoran
+
+  // palabra concreta -> sonido concreto
+  porPalabra: {
+    /* animales */
+    DUCK:"cuac", CAT:"miau", COW:"mu", DOG:"guau", PIG:"oink", SHEEP:"bee",
+    HORSE:"relincho", LION:"rugido", TIGER:"rugido", BEAR:"rugido",
+    ELEPHANT:"trompeta", MONKEY:"mono", BIRD:"pio", CHICKEN:"pio",
+    PENGUIN:"pio", FROG:"croac", BEE:"zumbido", BUTTERFLY:"zumbido",
+    SNAKE:"siseo", MOUSE:"chillido", RABBIT:"chillido",
+    FISH:"burbujas", TURTLE:"burbujas", WHALE:"ballena",
+
+    /* vehiculos */
+    CAR:"motor", BUS:"motor", TRUCK:"motor", TAXI:"motor", TRACTOR:"motor",
+    MOTORBIKE:"motor", SCOOTER:"motor", SKATEBOARD:"motor",
+    AMBULANCE:"sirena", "POLICE CAR":"sirena", "FIRE TRUCK":"sirena",
+    TRAIN:"tren", SUBWAY:"tren", HELICOPTER:"helice",
+    PLANE:"despegue", ROCKET:"despegue", UFO:"despegue", COMET:"despegue",
+    BOAT:"barco", SHIP:"barco", CANOE:"barco", BIKE:"timbre",
+
+    /* cielo y tiempo */
+    STORM:"trueno", LIGHTNING:"trueno", RAIN:"lluvia", SNOW:"lluvia",
+    WIND:"viento", TORNADO:"viento", FOG:"viento", CLOUD:"viento",
+
+    /* comida: crujiente, liquida o blandita */
+    APPLE:"crujido", CARROT:"crujido", COOKIE:"crujido", POPCORN:"crujido",
+    BREAD:"crujido", CORN:"crujido", PIZZA:"crujido", SANDWICH:"crujido",
+    MILK:"sorbo", JUICE:"sorbo", WATER:"sorbo", SOUP:"sorbo", HONEY:"sorbo",
+    CAKE:"nam", "ICE CREAM":"nam", CHOCOLATE:"nam", CANDY:"nam",
+    PANCAKE:"nam", "HOT DOG":"nam", RICE:"nam", EGG:"nam",
+    BUTTER:"nam", CHEESE:"nam",
+
+    /* varios con sonido propio */
+    RING:"timbre", ALIEN:"despegue", SATELLITE:"chispa",
+    TELESCOPE:"chispa", GALAXY:"chispa", RAINBOW:"chispa", STAR:"chispa",
+    MOON:"chispa", SUN:"chispa", EARTH:"chispa", PLANET:"chispa",
+    ASTRONAUT:"despegue", UMBRELLA:"lluvia", ICE:"crujido"
+  },
+
+  // si la palabra no esta arriba, se mira el tema al que pertenece
+  porTema: {
+    colores:   "chispa",
+    formas:    "pop",
+    numeros:   "pop",
+    emociones: "chispa",
+    espacio:   "chispa",
+    tiempo:    "viento",
+    animales:  "pio",
+    vehiculos: "motor",
+    comida:    "nam",
+    frutas:    "nam",
+    cuerpo:    "pop",
+    ropa:      "pop"
+  },
+
+  // ultimo recurso: siempre suena algo, nunca un toque mudo
+  porDefecto: "pop"
+};
+
+/* ================================================================
+   ⬇⬇⬇  CINE DE FIN DE NIVEL  ⬇⬇⬇
+   Mini pelicula de 3-5 s al terminar (o abrir) un NIVEL entero.
+   Salen los AVATARES de los perfiles de este aparato — nunca la camara
+   ni la cara real de nadie: el juego no pide ni usa la camara jamas.
+   Todo es CSS/SVG, sin video ni librerias, para que vaya fino en
+   tablets flojas.
+   ================================================================ */
+const CINE = {
+  msDuracion:  4200,   // cuanto dura la escena antes de volver sola a casa
+  msBoton:     700,    // cuando aparece el boton de continuar (siempre pulsable)
+  maxAvatares: 5,      // cuantos jugadores caben en el escenario
+  confeti:     [70, 45, 35]  // rafagas: al empezar, a 1/3 y a 2/3 de la escena
+};
+
 /* Ajustes rapidos del juego */
 const AJUSTES = {
   tarjetasPorRonda: TARJETAS_POR_RONDA,
-  msAutoAvance:     1800,  // espera antes de pasar de tarjeta al acertar
   msAutoAvance:     1800,  // espera antes de pasar de tarjeta al acertar
   msEscuchaMic:     12000, // cuanto tiempo total escucha el microfono
   reintentosMic:    2,     // reintentos si el peque tarda en hablar
@@ -1830,15 +2061,24 @@ function crearAmbiente(){
   const ctx = crearContextoAudio();
   if (!ctx) return null;
   try{
-    const maestro = ctx.createGain();
+    // OJO al orden de los nodos: el vaiven del LFO va en un nodo APARTE.
+    // Antes el LFO se conectaba directo a la ganancia maestra y, como las
+    // señales conectadas se SUMAN a la automatizacion, bajar el volumen a
+    // cero no callaba nada: el LFO seguia empujando. Por eso el boton de
+    // silencio "no hacia nada".
+    const maestro = ctx.createGain();          // solo automatizacion: fundido, duck y silencio
     maestro.gain.value = 0.0001;               // entra desde el silencio
     maestro.connect(ctx.destination);
+
+    const oleaje = ctx.createGain();           // aqui vive el vaiven lento
+    oleaje.gain.value = 1;
+    oleaje.connect(maestro);
 
     const filtro = ctx.createBiquadFilter();
     filtro.type = "lowpass";
     filtro.frequency.value = 520;              // quita brillo: queda mullido
     filtro.Q.value = 0.6;
-    filtro.connect(maestro);
+    filtro.connect(oleaje);
 
     // acorde abierto y desafinado a mano: suena vivo sin ser una cancion
     const notas = [110, 164.81, 220, 329.63];
@@ -1853,17 +2093,18 @@ function crearAmbiente(){
       return o;
     });
 
-    // LFO 1: respiracion del volumen (oleaje muy lento)
+    // LFO 1: respiracion del volumen. Va al nodo de oleaje, NO al maestro,
+    // para que el maestro pueda callar de verdad.
     const lfo = ctx.createOscillator(); lfo.frequency.value = 0.05;
     const lfoG = ctx.createGain(); lfoG.gain.value = 0.35;
-    lfo.connect(lfoG); lfoG.connect(maestro.gain); lfo.start();
+    lfo.connect(lfoG); lfoG.connect(oleaje.gain); lfo.start();
 
     // LFO 2: el filtro se abre y cierra, para que evolucione
     const lfo2 = ctx.createOscillator(); lfo2.frequency.value = 0.031;
     const lfo2G = ctx.createGain(); lfo2G.gain.value = 190;
     lfo2.connect(lfo2G); lfo2G.connect(filtro.frequency); lfo2.start();
 
-    ambiente = { ctx, maestro, filtro, osc, lfo, lfo2, nivel: 0 };
+    ambiente = { ctx, maestro, oleaje, filtro, osc, lfo, lfo2, conectado: true };
     return ambiente;
   }catch(e){ ambiente = null; return null; }
 }
@@ -1877,17 +2118,33 @@ function nivelAmbiente(){
 
 function ajustarAmbiente(segundos){
   if (!ambiente) return;
+  const seg = segundos || 0.4;
   try{
+    // al encender, primero reconectamos
+    if (!ambienteApagado && !ambiente.conectado){
+      ambiente.maestro.connect(ambiente.ctx.destination);
+      ambiente.conectado = true;
+    }
     const t = ambiente.ctx.currentTime;
     ambiente.maestro.gain.cancelScheduledValues(t);
     ambiente.maestro.gain.setValueAtTime(Math.max(0.0001, ambiente.maestro.gain.value), t);
-    ambiente.maestro.gain.exponentialRampToValueAtTime(nivelAmbiente(), t + (segundos || 0.4));
+    ambiente.maestro.gain.exponentialRampToValueAtTime(nivelAmbiente(), t + seg);
+    // al apagar, ademas de bajar a cero lo soltamos de la salida: garantia
+    // de que no queda ni un hilo de sonido
+    if (ambienteApagado && ambiente.conectado){
+      luego(() => {
+        if (ambienteApagado && ambiente && ambiente.conectado){
+          try{ ambiente.maestro.disconnect(ambiente.ctx.destination); }catch(e){}
+          ambiente.conectado = false;
+        }
+      }, seg * 1000 + 80);
+    }
   }catch(e){}
 }
 
 /* arranca despues del toque del splash, nunca antes (iOS) y siempre suave */
 function arrancarAmbiente(){
-  if (ambienteApagado) return false;
+  if (ambienteApagado) return false;   // si el adulto lo dejo callado, ni empieza
   const a = crearAmbiente();
   if (!a) return false;
   ajustarAmbiente(AUDIO.ambiente.segFundido);
@@ -1928,6 +2185,263 @@ function pintarBotonSonido(){
   b.textContent = ambienteApagado ? "🔇" : "🔊";
   b.setAttribute("aria-label", ambienteApagado ? "Música apagada" : "Música encendida");
   b.classList.toggle("apagado", ambienteApagado);
+}
+
+
+/* ================================================================
+   1d) SONIDOS DE LOS ICONOS DE LA TARJETA
+   Todo sintetizado al vuelo (ni un solo fichero de audio) para que
+   pese cero y suene igual en cualquier aparato. Dos ladrillos:
+   un tono con rampa de frecuencia y un soplo de ruido filtrado.
+   ================================================================ */
+
+/* ladrillo 1: tono con rampa libre de frecuencia
+   puntos = [[hz, segundo], ...]  |  opciones: tipo, dur, vol, retardo, vibrato */
+function tono(puntos, o){
+  o = o || {};
+  const ctx = crearContextoAudio();
+  if (!ctx || ctx.state !== "running") return;
+  try{
+    const t0 = ctx.currentTime + (o.retardo || 0);
+    const dur = o.dur || 0.3;
+    const vol = (o.vol == null ? 1 : o.vol) * SONIDOS_TARJETA.volumen;
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = o.tipo || "sine";
+    osc.frequency.setValueAtTime(Math.max(20, puntos[0][0]), t0);
+    puntos.slice(1).forEach(p => osc.frequency.exponentialRampToValueAtTime(Math.max(20, p[0]), t0 + p[1]));
+
+    // vibrato opcional: da vida a maullidos, mugidos y relinchos
+    if (o.vibrato){
+      const lfo = ctx.createOscillator(), prof = ctx.createGain();
+      lfo.frequency.value = o.vibrato[0];
+      prof.gain.value = o.vibrato[1];
+      lfo.connect(prof); prof.connect(osc.frequency);
+      lfo.start(t0); lfo.stop(t0 + dur + 0.05);
+    }
+
+    let destino = g;
+    if (o.filtro){                      // paso bajo para redondear lo aspero
+      const f = ctx.createBiquadFilter();
+      f.type = "lowpass"; f.frequency.value = o.filtro;
+      f.connect(g); destino = f;
+    }
+    osc.connect(destino);
+
+    const ata = o.ataque || 0.015;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t0 + ata);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    g.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.05);
+  }catch(e){}
+}
+
+/* ladrillo 2: soplo de ruido blanco filtrado (viento, motores, crujidos...)
+   opciones: dur, vol, retardo, desde, hasta (Hz del filtro), q, tipo, ataque */
+let bufferRuido = null;
+function ruido(o){
+  o = o || {};
+  const ctx = crearContextoAudio();
+  if (!ctx || ctx.state !== "running") return;
+  try{
+    // el buffer de ruido se crea UNA vez y se reutiliza: barato en tablets flojas
+    if (!bufferRuido || bufferRuido.sampleRate !== ctx.sampleRate){
+      const n = Math.floor(ctx.sampleRate * 1.2);
+      bufferRuido = ctx.createBuffer(1, n, ctx.sampleRate);
+      const d = bufferRuido.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    }
+    const t0 = ctx.currentTime + (o.retardo || 0);
+    const dur = o.dur || 0.3;
+    const vol = (o.vol == null ? 1 : o.vol) * SONIDOS_TARJETA.volumen;
+
+    const src = ctx.createBufferSource();
+    src.buffer = bufferRuido;
+    src.loop = true;
+    const f = ctx.createBiquadFilter();
+    f.type = o.tipo || "bandpass";
+    f.Q.value = o.q == null ? 1 : o.q;
+    f.frequency.setValueAtTime(Math.max(30, o.desde || 800), t0);
+    if (o.hasta) f.frequency.exponentialRampToValueAtTime(Math.max(30, o.hasta), t0 + dur);
+
+    const g = ctx.createGain();
+    const ata = o.ataque || 0.02;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t0 + ata);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+    src.connect(f); f.connect(g); g.connect(ctx.destination);
+    src.start(t0); src.stop(t0 + dur + 0.05);
+  }catch(e){}
+}
+
+/* Recetario. Cada clave del mapa de configuracion apunta aqui.
+   No pretenden ser realistas: solo divertidos y reconocibles. */
+const MOTORES_SONIDO = {
+  /* --- animales --- */
+  cuac: () => {                                   // pato: dos graznidos nasales
+    tono([[520,0],[300,.11]], {tipo:"sawtooth", dur:.13, vol:.55, filtro:1400});
+    tono([[500,0],[280,.10]], {tipo:"sawtooth", dur:.12, vol:.5,  filtro:1300, retardo:.18});
+  },
+  miau: () => {                                   // gato: sube y baja, muy nasal
+    tono([[620,0],[900,.16],[520,.45]], {tipo:"sawtooth", dur:.5, vol:.45, filtro:2000, vibrato:[6,25], ataque:.05});
+  },
+  mu: () => {                                     // vaca: grave y largo
+    tono([[190,0],[150,.25],[120,.75]], {tipo:"sawtooth", dur:.8, vol:.5, filtro:700, vibrato:[5,8], ataque:.08});
+  },
+  guau: () => {                                   // perro: dos ladridos secos
+    tono([[420,0],[180,.09]], {tipo:"square", dur:.11, vol:.45, filtro:1200, ataque:.005});
+    tono([[400,0],[170,.09]], {tipo:"square", dur:.11, vol:.4,  filtro:1100, ataque:.005, retardo:.2});
+  },
+  oink: () => {                                   // cerdo: gruñido con ruido
+    tono([[300,0],[210,.14]], {tipo:"sawtooth", dur:.16, vol:.4, filtro:900});
+    ruido({desde:900, hasta:400, dur:.18, vol:.3, q:.8});
+    tono([[280,0],[200,.13]], {tipo:"sawtooth", dur:.15, vol:.35, filtro:900, retardo:.24});
+  },
+  bee: () => {                                    // oveja: beeee tembloroso
+    tono([[440,0],[400,.5]], {tipo:"sawtooth", dur:.55, vol:.4, filtro:1600, vibrato:[14,45], ataque:.04});
+  },
+  relincho: () => {                               // caballo: sube y cae en cascada
+    tono([[700,0],[900,.12],[400,.5]], {tipo:"sawtooth", dur:.55, vol:.4, filtro:2200, vibrato:[18,60]});
+  },
+  rugido: () => {                                 // leon/tigre/oso: grave y rasposo
+    tono([[130,0],[90,.55]], {tipo:"sawtooth", dur:.6, vol:.5, filtro:600, vibrato:[22,14], ataque:.08});
+    ruido({desde:300, hasta:120, dur:.6, vol:.35, q:.7});
+  },
+  trompeta: () => {                               // elefante: barrito que sube
+    tono([[300,0],[750,.18],[620,.45]], {tipo:"sawtooth", dur:.5, vol:.45, filtro:2600, ataque:.03});
+  },
+  mono: () => {                                   // mono: uh-uh-uh rapido
+    [0,.13,.26].forEach((r,i) => tono([[520+i*90,0],[780+i*90,.05],[560+i*90,.1]],
+      {tipo:"triangle", dur:.11, vol:.4, retardo:r}));
+  },
+  pio: () => {                                    // pajaro: dos trinos agudos
+    tono([[1800,0],[2600,.05],[2000,.09]], {tipo:"sine", dur:.1, vol:.35});
+    tono([[2000,0],[2800,.05],[2200,.09]], {tipo:"sine", dur:.1, vol:.32, retardo:.14});
+  },
+  croac: () => {                                  // rana: croac raspado
+    tono([[180,0],[120,.12]], {tipo:"square", dur:.14, vol:.35, filtro:800});
+    ruido({desde:500, hasta:200, dur:.14, vol:.25, q:1.4});
+    tono([[170,0],[115,.11]], {tipo:"square", dur:.13, vol:.3, filtro:800, retardo:.22});
+  },
+  zumbido: () => {                                // abeja: zzzz que va y viene
+    tono([[220,0],[260,.2],[210,.45]], {tipo:"sawtooth", dur:.5, vol:.3, filtro:1200, vibrato:[38,30], ataque:.06});
+  },
+  siseo: () => {                                  // serpiente: puro ruido agudo
+    ruido({desde:5000, hasta:3000, dur:.55, vol:.35, q:.6, ataque:.08});
+  },
+  chillido: () => {                               // raton: chillidito muy agudo
+    tono([[2400,0],[3200,.05],[2600,.1]], {tipo:"sine", dur:.11, vol:.28});
+    tono([[2600,0],[3400,.04],[2800,.08]], {tipo:"sine", dur:.09, vol:.24, retardo:.13});
+  },
+  burbujas: () => {                               // pez: burbujitas que suben
+    [0,.11,.23].forEach((r,i) => tono([[240+i*60,0],[900+i*120,.09]],
+      {tipo:"sine", dur:.1, vol:.3, retardo:r}));
+  },
+  ballena: () => {                                // ballena: canto largo y grave
+    tono([[300,0],[480,.5],[260,1.1]], {tipo:"sine", dur:1.2, vol:.35, vibrato:[3,20], ataque:.15});
+  },
+
+  /* --- vehiculos --- */
+  motor: () => {                                  // ruum: acelera y se sostiene
+    tono([[70,0],[150,.35],[130,.8]], {tipo:"sawtooth", dur:.85, vol:.4, filtro:450, ataque:.06});
+    ruido({desde:250, hasta:600, dur:.85, vol:.25, q:.5, ataque:.06});
+  },
+  sirena: () => {                                 // nino-nino de emergencia
+    [0,.42].forEach(r => {
+      tono([[700,0],[1050,.18],[700,.38]], {tipo:"square", dur:.4, vol:.3, filtro:2200, retardo:r});
+    });
+  },
+  tren: () => {                                   // pitido + traqueteo
+    tono([[520,0],[520,.35]], {tipo:"sawtooth", dur:.4, vol:.3, filtro:1500, ataque:.05});
+    tono([[660,0],[660,.35]], {tipo:"sawtooth", dur:.4, vol:.2, filtro:1500, ataque:.05});
+    [.45,.6,.75,.9].forEach(r => ruido({desde:300, hasta:150, dur:.1, vol:.3, q:.8, retardo:r}));
+  },
+  helice: () => {                                 // aspas: golpes rapidos
+    for (let i = 0; i < 10; i++) ruido({desde:400, hasta:200, dur:.06, vol:.9, q:1.2, retardo:i*.075, ataque:.008});
+  },
+  despegue: () => {                               // whoosh de despegue
+    ruido({desde:200, hasta:4000, dur:.7, vol:.45, q:.4, ataque:.2});
+    tono([[120,0],[900,.65]], {tipo:"sawtooth", dur:.7, vol:.25, filtro:2000, ataque:.2});
+  },
+  barco: () => {                                  // bocina de barco, grave y doble
+    tono([[150,0],[145,.6]], {tipo:"sawtooth", dur:.65, vol:.4, filtro:500, ataque:.1});
+    tono([[112,0],[110,.6]], {tipo:"sine", dur:.65, vol:.3, ataque:.1});
+  },
+  timbre: () => {                                 // rin-rin de bici
+    [0,.13].forEach(r => {
+      tono([[2100,0],[2100,.3]], {tipo:"sine", dur:.35, vol:.3, retardo:r, ataque:.004});
+      tono([[3150,0],[3150,.2]], {tipo:"sine", dur:.25, vol:.15, retardo:r, ataque:.004});
+    });
+  },
+
+  /* --- cielo y tiempo --- */
+  trueno: () => {                                 // trueno: golpe grave y cola
+    ruido({desde:600, hasta:60, dur:1.1, vol:.5, tipo:"lowpass", q:.4, ataque:.02});
+    tono([[70,0],[40,1]], {tipo:"sine", dur:1.1, vol:.4, ataque:.02});
+  },
+  lluvia: () => {                                 // sirimiri: ruido agudo suave
+    ruido({desde:6000, hasta:5000, dur:1, vol:.3, tipo:"highpass", q:.5, ataque:.2});
+  },
+  viento: () => {                                 // soplo que va y viene
+    ruido({desde:400, hasta:1400, dur:.6, vol:.75, q:.6, ataque:.25});
+    ruido({desde:1400, hasta:300, dur:.6, vol:.65, q:.6, ataque:.25, retardo:.55});
+  },
+
+  /* --- comida --- */
+  crujido: () => {                                // ñaca: mordisco crujiente
+    [0,.09,.17].forEach((r,i) => ruido({desde:2600 - i*500, hasta:900, dur:.07, vol:1, q:1.6, retardo:r, ataque:.004}));
+  },
+  sorbo: () => {                                  // sorbito que sube
+    tono([[300,0],[900,.3]], {tipo:"sine", dur:.35, vol:.35, vibrato:[16,40], ataque:.05});
+    ruido({desde:1200, hasta:2600, dur:.35, vol:.15, q:1, ataque:.05});
+  },
+  nam: () => {                                    // ñam ñam blandito
+    [0,.17].forEach(r => tono([[260,0],[170,.13]], {tipo:"triangle", dur:.15, vol:.4, filtro:900, retardo:r}));
+  },
+
+  /* --- genericos: siempre hay respuesta al toque --- */
+  pop: () => {                                    // pop redondo y alegre
+    tono([[420,0],[980,.07]], {tipo:"sine", dur:.14, vol:.5, ataque:.005});
+    tono([[1400,0],[1900,.05]], {tipo:"sine", dur:.09, vol:.18, ataque:.004});
+  },
+  chispa: () => {                                 // chispita: tres notas brillantes
+    [0,.07,.14].forEach((r,i) => tono([[1200 + i*420, 0],[1500 + i*420, .1]],
+      {tipo:"sine", dur:.16, vol:.32, retardo:r, ataque:.004}));
+  }
+};
+
+/* que sonido le toca a una palabra: primero el mapa, luego el tema, luego el comodin */
+function tipoDeSonido(palabra){
+  const C = SONIDOS_TARJETA;
+  if (palabra && C.porPalabra[palabra.en]) return C.porPalabra[palabra.en];
+  const tema = estado.tema ? estado.tema.id : null;
+  if (tema && C.porTema[tema]) return C.porTema[tema];
+  return C.porDefecto;
+}
+
+let ultimoIcono = 0;
+
+/* Toque en el dibujo de la tarjeta: suena LA COSA, no la palabra.
+   El boton 🔊 sigue siendo el unico que habla. */
+function sonarIcono(palabra){
+  const ahora = Date.now();
+  // antirrebote: aporrear el icono no amontona ruido
+  if (ahora - ultimoIcono < SONIDOS_TARJETA.msEntreToques) return false;
+  ultimoIcono = ahora;
+
+  const motor = MOTORES_SONIDO[tipoDeSonido(palabra)] || MOTORES_SONIDO[SONIDOS_TARJETA.porDefecto];
+  agacharAmbiente();                       // el colchon se aparta un momento
+  try{ motor(); }catch(e){}
+  luego(soltarAmbiente, 900);
+
+  // el brinco del icono confirma el toque aunque el aparato este en silencio
+  const d = $("#dibujo");
+  if (d){
+    d.classList.remove("rebote"); void d.offsetWidth; d.classList.add("rebote");
+    luego(() => d.classList.remove("rebote"), 620);
+  }
+  return true;
 }
 
 /* ================================================================
@@ -2500,7 +3014,11 @@ function coincide(dicho, objetivo, extras){
       // 1-4 letras: solo 1 cambio. Mas largas: la tolerancia de la config.
       const umbral = meta.length <= 4 ? 1 : AJUSTES.distanciaMax;
       if (levenshtein(p, meta) <= umbral) return true;
-      if (soundex(p) === soundex(meta)) return true;               // suena igual
+      // "suena igual" (soundex) es MUY tolerante: se come las vocales y
+      // agrupa consonantes. Un balbuceo como "brrrr" daba B600, igual que
+      // "bear", y pasaba de tarjeta. Le pedimos ademas no quedar lejos.
+      if (soundex(p) === soundex(meta) &&
+          levenshtein(p, meta) <= Math.max(1, Math.ceil(meta.length / 2))) return true;
       if (p.length >= 3 && meta.length >= 3 &&
           p.slice(0,3) === meta.slice(0,3)) return true;           // empieza igual
     }
@@ -2511,7 +3029,7 @@ function coincide(dicho, objetivo, extras){
 /* ================================================================
    8) PANTALLAS Y RENDER
    ================================================================ */
-const HUECOS = { perfiles:"huecoPerfiles", home:"huecoHome", juego:"huecoJuego", mini:"huecoMini", final:"huecoFinal", album:"huecoAlbum" };
+const HUECOS = { perfiles:"huecoPerfiles", home:"huecoHome", juego:"huecoJuego", mini:"huecoMini", final:"huecoFinal", album:"huecoAlbum", cine:"huecoCine" };
 
 function mostrarPantalla(id){
   document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
@@ -2525,6 +3043,7 @@ function mostrarPantalla(id){
    temporizadores, voz, microfono, pistas, minijuego y confeti. */
 function pararTodo(){
   cancelarTemporizadores();
+  cineTemp = null;                 // la peli se corta como cualquier otra cosa
   temporizadorAvance = null; temporizadorGuia = null; temporizadorSaludo = null; temporizadorBlip = null;
   cerrarMini();
   cerrarCofre();
@@ -2669,7 +3188,9 @@ function ponerDibujo(el, palabra){
 /* ================================================================
    NIVELES — que esta abierto y que categorias se han terminado
    ================================================================ */
-const progreso = { completados: {}, desbloqueados: [true, false, false], puntos: 0 };
+const progreso = { completados: {}, desbloqueados: [true, false, false], puntos: 0,
+                   // niveles cuyo cine ya se vio: la peli no se repite al volver
+                   celebrados: [] };
 let pendienteDesbloqueo = null;      // nivel recien abierto, para celebrarlo en casa
 
 function nivelDeTema(tema){
@@ -2699,6 +3220,18 @@ function marcarCategoriaCompletada(tema){
   if (!tema) return;
   progreso.completados[tema.id] = true;
   const nuevos = recalcularDesbloqueos();
+
+  // ¿se ha terminado el nivel ENTERO al que pertenece esta categoria?
+  const iNivel = nivelDeTema(tema);
+  const entero = completadosEnNivel(iNivel) >= NIVELES[iNivel].temas.length;
+  if (!progreso.celebrados) progreso.celebrados = [];
+  if (entero && progreso.celebrados.indexOf(iNivel) === -1){
+    progreso.celebrados.push(iNivel);          // la peli de un nivel se ve una vez
+    pendienteCine = { tipo: "completo", nivel: iNivel };
+  } else if (nuevos.length){
+    pendienteCine = { tipo: "abierto", nivel: nuevos[0] };
+  }
+
   guardarAlbum();
   if (nuevos.length) pendienteDesbloqueo = nuevos[0];
 }
@@ -2770,13 +3303,125 @@ function avisarCerrado(boton){
   speakPhrase(FRASES.cerrado, "cerrado");
 }
 
+/* ================================================================
+   10b) CINE DE FIN DE NIVEL
+   Los AVATARES de los perfiles guardados en ESTE aparato salen a
+   celebrar junto a Blip. No hay camara, ni fotos, ni caras reales:
+   solo los muñecos de colores que se eligen al crear un jugador.
+   Es una pantalla normal, asi que hereda toda la disciplina
+   anti-atascos: pararTodo() la corta y el boton siempre responde.
+   ================================================================ */
+let pendienteCine = null;     // {tipo:"completo"|"abierto", nivel:i} pendiente de verse
+let cineTemp = null;
+
+/* monta el escenario con los avatares y lanza la escena */
+function reproducirCine(guion){
+  if (!guion) return;
+  const nivel = NIVELES[guion.nivel] || NIVELES[0];
+  const completo = guion.tipo === "completo";
+
+  $("#cineTitulo").textContent = completo
+    ? nivel.nombre.toUpperCase() + " COMPLETE!"
+    : nivel.nombre.toUpperCase() + " UNLOCKED!";
+  $("#cineSub").textContent = completo
+    ? "¡Has terminado todo el nivel!"
+    : "¡Se ha abierto un nivel nuevo!";
+  $("#cineTrofeo").querySelector(".premio").textContent = completo ? "🏆" : nivel.icono;
+
+  // medallitas: los iconos de las categorias ya conquistadas de ese nivel
+  const med = $("#cineMedallas");
+  med.innerHTML = "";
+  nivel.temas.forEach((t, i) => {
+    if (!completo && !progreso.completados[t.id]) return;
+    const e = document.createElement("span");
+    e.textContent = t.icono;
+    e.style.animationDelay = (350 + i * 110) + "ms";
+    med.appendChild(e);
+  });
+
+  // el elenco: primero quien juega, detras el resto de jugadores del aparato
+  const elenco = $("#cineElenco");
+  elenco.innerHTML = "";
+  const reparto = [];
+  if (perfilActual) reparto.push(perfilActual);
+  perfiles.forEach(p => {
+    if (reparto.length >= CINE.maxAvatares) return;
+    if (!perfilActual || p.id !== perfilActual.id) reparto.push(p);
+  });
+  if (!reparto.length) reparto.push({ nombre: "You", avatar: "#7C4DFF" });   // sin perfiles: un muñeco generico
+
+  reparto.forEach((p, i) => {
+    const a = document.createElement("div");
+    a.className = "cine-actor" + (i === 0 ? " protagonista" : "");
+    const m = document.createElement("div");
+    m.className = "muneco";
+    m.innerHTML = svgAvatar(p.avatar || "#7C4DFF");
+    // cada uno salta a su ritmo: parece un grupo, no un ejercito
+    m.style.animationDelay = (i * 130) + "ms";
+    m.style.animationDuration = (0.95 + i * 0.08) + "s";
+    const n = document.createElement("div");
+    n.className = "quien";
+    n.textContent = p.nombre || "";
+    a.appendChild(m); a.appendChild(n);
+    elenco.appendChild(a);
+  });
+
+  const cine = $("#cine");
+  cine.classList.remove("listo");
+  mostrarPantalla("cine");
+  ponerBlip("feliz", CINE.msDuracion + 400);
+
+  // sonido y voz: los de siempre, para que suene a "esto ya lo conozco"
+  sonidos.fiesta();
+  callar();
+  speakPhrase(completo ? FRASES.nivelHecho : FRASES.nivelNuevo, "cine");
+
+  // rafagas de confeti repartidas por la escena
+  const paso = CINE.msDuracion / (CINE.confeti.length + 1);
+  CINE.confeti.forEach((n, i) => {
+    if (i === 0) lanzarConfeti(n);
+    else luego(() => { if (estado.pantalla === "cine") lanzarConfeti(n); }, paso * i);
+  });
+
+  // el boton entra enseguida y se queda: nadie puede quedarse encerrado
+  luego(() => cine.classList.add("listo"), CINE.msBoton);
+  cancelar(cineTemp);
+  cineTemp = luego(() => { cineTemp = null; cerrarCine(); }, CINE.msDuracion);
+}
+
+/* salir de la escena: se limpia TODO y se vuelve a casa */
+function cerrarCine(){
+  cancelar(cineTemp); cineTemp = null;
+  if (estado.pantalla !== "cine") return;      // ya nos habiamos ido
+  const guion = pendienteCine;
+  pendienteCine = null;
+  callar();
+  $("#cine").classList.remove("listo");
+  $("#confeti").innerHTML = "";
+  pintarHome();
+  mostrarPantalla("home");
+  // si ademas se abrio un nivel, en casa se resalta (sin repetir la fiesta entera)
+  if (pendienteDesbloqueo !== null){
+    const n = pendienteDesbloqueo;
+    pendienteDesbloqueo = null;
+    luego(() => resaltarNivel(n), 350);
+    programarSaludo(1400);
+  } else {
+    programarSaludo(400);
+  }
+}
+
+/* subraya visualmente el nivel que se acaba de abrir */
+function resaltarNivel(iNivel){
+  const secc = document.querySelector('.nivel[data-nivel="' + iNivel + '"]');
+  if (!secc) return;
+  secc.classList.remove("abriendo"); void secc.offsetWidth; secc.classList.add("abriendo");
+}
+
 /* celebracion al abrirse un nivel nuevo */
 function celebrarDesbloqueo(iNivel){
   pendienteDesbloqueo = null;
-  const secc = document.querySelector('.nivel[data-nivel="' + iNivel + '"]');
-  if (secc){
-    secc.classList.remove("abriendo"); void secc.offsetWidth; secc.classList.add("abriendo");
-  }
+  resaltarNivel(iNivel);
   sonidos.fiesta();
   lanzarConfeti(60);
   callar();
@@ -2985,6 +3630,9 @@ function terminarTema(){
 /* Volver a casa deja el tema COMPLETAMENTE reseteado: ni progreso, ni tarjeta
    pendiente, ni voz, ni temporizadores, ni confeti, ni minijuego a medias. */
 function irACasa(){
+  // la peli de fin de nivel tiene su propia salida: si estamos dentro,
+  // se cierra por ahi. Asi no se relanza sola en bucle.
+  if (estado.pantalla === "cine"){ cerrarCine(); return; }
   pararTodo();
   estado.bloqueado = false;
   estado.indice = 0;
@@ -2993,7 +3641,11 @@ function irACasa(){
   animo("");
   pintarHome();                    // refleja categorias hechas y niveles abiertos
   mostrarPantalla("home");
-  if (pendienteDesbloqueo !== null){
+  if (pendienteCine){
+    // nivel entero (o nivel nuevo): toca mini pelicula con los avatares
+    const g = pendienteCine;
+    luego(() => { if (estado.pantalla === "home") reproducirCine(g); }, 350);
+  } else if (pendienteDesbloqueo !== null){
     const n = pendienteDesbloqueo;
     luego(() => celebrarDesbloqueo(n), 450);
   } else {
@@ -3556,6 +4208,9 @@ function pintarPerfiles(){
     const pts = (caja && caja.puntos) || 0;
     b.querySelector(".puntos").textContent = "⭐ " + pts;
     b.addEventListener("click", () => { sonidos.toque(); entrarPerfil(p.id); });
+    // Opciones de adulto: mantener pulsada la tarjeta 1,5s. Antes esto vivia
+    // en un engranaje que confundia (un toque corto no hacia nada).
+    prepararPulsacionLarga(b, () => { perfilEnDialogo = p; abrirDialogo(); });
     cont.appendChild(b);
   });
 
@@ -3571,6 +4226,17 @@ function mostrarPerfiles(){
   pararTodo();
   pintarPerfiles();
   mostrarPantalla("perfiles");
+}
+
+/* pulsacion larga generica: dificil de disparar sin querer por un peque */
+function prepararPulsacionLarga(el, alCumplirse){
+  const soltar = () => { el.classList.remove("cargando"); cancelar(tempAjustes); tempAjustes = null; };
+  el.addEventListener("pointerdown", () => {
+    el.classList.add("cargando");
+    cancelar(tempAjustes);
+    tempAjustes = luego(() => { soltar(); alCumplirse(); }, 1500);
+  });
+  ["pointerup","pointerleave","pointercancel"].forEach(e => el.addEventListener(e, soltar));
 }
 
 /* creador de perfil: nombre + color. Lo usa el adulto. */
@@ -3656,6 +4322,7 @@ function cargarAlbum(){
   progreso.completados = {};
   progreso.puntos = 0;
   progreso.desbloqueados = [true, false, false];
+  progreso.celebrados = [];
   if (!perfilActual || !almacenDisponible){ recalcularDesbloqueos(); return; }
   try{
     const bruto = window.localStorage.getItem(claveDePerfil(perfilActual.id));
@@ -3670,6 +4337,7 @@ function cargarAlbum(){
     if (datos && datos.completados && typeof datos.completados === "object"){
       progreso.completados = datos.completados;
     }
+    if (datos && Array.isArray(datos.celebrados)) progreso.celebrados = datos.celebrados;
     recalcularDesbloqueos();
   }catch(e){
     album.ganadas = {};          // guardado corrupto: se empieza de cero, sin drama
@@ -3686,6 +4354,7 @@ function guardarAlbum(){
       ganadas: album.ganadas,
       completados: progreso.completados,
       desbloqueados: progreso.desbloqueados,
+      celebrados: progreso.celebrados || [],
       puntos: progreso.puntos || 0
     }));
     return true;
@@ -3911,23 +4580,34 @@ function cerrarCofre(){
 
 /* ================================================================
    14) AJUSTES DEL ADULTO — borrar el album
-   Pulsacion larga de 1,5s en el engranaje: dificil de disparar sin querer.
+   Pulsacion larga de 1,5s sobre la tarjeta de un jugador: dificil de
+   disparar sin querer por un peque, y no hace falta ningun boton visible.
    ================================================================ */
 let tempAjustes = null;
+let perfilEnDialogo = null;    // sobre que jugador actua el dialogo
 
 function abrirDialogo(){
   const d = $("#dialogo");
   $("#avisoAlmacen").hidden = almacenDisponible;
+  const quien = perfilEnDialogo || perfilActual;
+  $("#dialogoQuien").textContent = quien ? quien.nombre : "";
   d.classList.add("activo");
   callar();
 }
-function cerrarDialogo(){ $("#dialogo").classList.remove("activo"); }
+function cerrarDialogo(){ $("#dialogo").classList.remove("activo"); perfilEnDialogo = null; }
 
 function borrarAlbum(){
+  // si se abrio desde la lista de jugadores, hay que entrar a ese primero
+  if (perfilEnDialogo && (!perfilActual || perfilEnDialogo.id !== perfilActual.id)){
+    perfilActual = perfilEnDialogo;
+    cargarAlbum();
+  }
   album.ganadas = {};
   progreso.completados = {};
   progreso.desbloqueados = [true, false, false];
+  progreso.celebrados = [];
   pendienteDesbloqueo = null;
+  pendienteCine = null;
   progreso.puntos = 0;
   if (almacenDisponible && perfilActual){
     try{ window.localStorage.removeItem(claveDePerfil(perfilActual.id)); }catch(e){}
@@ -3999,6 +4679,11 @@ function arrancar(){
 });
 
 /* botones del juego */
+/* tocar el dibujo = sonido de la cosa (nunca la voz: eso es el 🔊) */
+$("#dibujo").addEventListener("click", () => {
+  if (estado.pantalla !== "juego") return;
+  sonarIcono(tarjetaActual());
+});
 $("#btnEscuchar").addEventListener("click", repetirPalabra);
 $("#btnListo").addEventListener("click", () => {
   // camino principal, no un plan B: siempre avanza
@@ -4009,32 +4694,22 @@ $("#btnCasaMini").addEventListener("click", () => { sonidos.toque(); irACasa(); 
 $("#btnCasaAlbum").addEventListener("click", () => { sonidos.toque(); irACasa(); });
 $("#btnAlbum").addEventListener("click", () => { sonidos.toque(); abrirAlbum(); });
 
-/* engranaje del adulto: hay que mantenerlo pulsado 1,5s */
-(function(){
-  const b = $("#btnAjustes");
-  const soltar = () => { b.classList.remove("cargando"); cancelar(tempAjustes); tempAjustes = null; };
-  b.addEventListener("pointerdown", (ev) => {
-    ev.preventDefault();
-    b.classList.add("cargando");
-    cancelar(tempAjustes);
-    tempAjustes = luego(() => { soltar(); abrirDialogo(); }, 1500);
-  });
-  ["pointerup","pointerleave","pointercancel"].forEach(e => b.addEventListener(e, soltar));
-})();
 $("#btnSonido").addEventListener("click", () => { alternarAmbiente(); });
 $("#btnPerfil").addEventListener("click", () => { sonidos.toque(); mostrarPerfiles(); });
 $("#btnCancelarCreador").addEventListener("click", cerrarCreador);
 $("#btnCrearPerfil").addEventListener("click", confirmarCreacion);
 $("#nombrePerfil").addEventListener("keydown", (ev) => { if (ev.key === "Enter") confirmarCreacion(); });
 $("#btnBorrarPerfil").addEventListener("click", () => {
-  if (!perfilActual) return;
-  borrarPerfil(perfilActual.id);
+  const quien = perfilEnDialogo || perfilActual;
+  if (!quien) return;
+  borrarPerfil(quien.id);
   cerrarDialogo();
   mostrarPerfiles();
 });
 $("#btnCancelarBorrado").addEventListener("click", cerrarDialogo);
 $("#btnConfirmarBorrado").addEventListener("click", borrarAlbum);
 $("#dialogo").addEventListener("click", (ev) => { if (ev.target.id === "dialogo") cerrarDialogo(); });
+$("#btnCine").addEventListener("click", () => { sonidos.toque(); cerrarCine(); });
 $("#btnHomeFinal").addEventListener("click", () => { sonidos.toque(); irACasa(); });
 $("#btnOtraVez").addEventListener("click", () => { sonidos.toque(); empezarTema(estado.tema); });
 
@@ -4073,18 +4748,26 @@ window.__juego = {
   claveDePerfil, svgAvatar, sumarPuntos, CLAVE_PERFILES, PREFIJO_PERFIL,
   get perfiles(){ return perfiles; },
   get perfil(){ return perfilActual; },
+  abrirDialogo, prepararPulsacionLarga,
   get puntos(){ return progreso.puntos || 0; },
   NIVELES, progreso, nivelAbierto, completadosEnNivel, nivelDeTema,
   recalcularDesbloqueos, marcarCategoriaCompletada, pintarHome, celebrarDesbloqueo,
   svgForma, svgCara, ponerDibujo, CATEGORIAS_PARA_ABRIR, barajar, repartirMazo,
   AUDIO, speakWord, speakPhrase, puntuarVoz, blipReacciona, VOCES_BLIP,
+  SONIDOS_TARJETA, MOTORES_SONIDO, tipoDeSonido, sonarIcono, tono, ruido,
   alternarAmbiente, arrancarAmbiente, agacharAmbiente, soltarAmbiente,
-  nivelAmbiente, CLAVE_AMBIENTE,
+  nivelAmbiente, CLAVE_AMBIENTE, soltarAmbienteDelTodo,
+  get ambienteAgachado(){ return ambienteAgachado; },
   get ambienteApagado(){ return ambienteApagado; },
   get ambienteVivo(){ return !!ambiente; },
   get ambienteGanancia(){ return ambiente ? ambiente.maestro.gain.value : null; },
+  get ambienteConectado(){ return ambiente ? ambiente.conectado : false; },
+  ambienteNodo(){ return ambiente ? ambiente.maestro : null; },
   get ambienteOsciladores(){ return ambiente ? ambiente.osc.length : 0; },
   get desbloqueoPendiente(){ return pendienteDesbloqueo; },
+  CINE, reproducirCine, cerrarCine, resaltarNivel, irACasa,
+  get cinePendiente(){ return pendienteCine; },
+  set cinePendiente(v){ pendienteCine = v; },
   montarCofre, abrirCofre, elegirPremio, borrarAlbum, CLAVE_ALBUM,
   pegatinasGanadas, totalPegatinas,
   get almacenOk(){ return almacenDisponible; },
