@@ -370,8 +370,9 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   font-family:"Fredoka","Nunito",system-ui,sans-serif; font-weight:600;
   font-size:clamp(1rem,4vw,1.5rem);
   background:var(--superficie); border-radius:var(--r-full);
-  padding:var(--s1) var(--s3);
-  box-shadow:0 4px 0 rgba(43,36,69,.08);
+  /* alto comodo de pulsar: ahora la cabecera es un interruptor */
+  padding:var(--s2) var(--s3); min-height:60px;
+  box-shadow:0 var(--lip-1) 0 rgba(43,36,69,.10);
 }
 .cab-nivel .ico{ font-size:1.2em; line-height:1; }
 .cab-nivel .cuenta{
@@ -547,6 +548,43 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   40%{ transform:scale(1.35) }
   100%{ transform:scale(1) }
 }
+
+/* ================================================================
+   SECCIONES PLEGABLES (niveles de casa y categorias del album)
+   La altura se anima en pixeles medidos, no con "auto" ni con trucos de
+   grid: es lo unico que va fino y sin saltos en tablets viejas. El muelle
+   se lo damos al CONTENIDO (que escala y sube), no a la altura, porque un
+   muelle sobre la altura enseñaria un hueco vacio al pasarse de largo.
+   ================================================================ */
+.plegable{
+  overflow:hidden;
+  transition:max-height var(--t-plegar,340ms) var(--suave);
+}
+.plegable > .dentro{
+  transition:transform var(--t-plegar,340ms) var(--muelle),
+             opacity calc(var(--t-plegar,340ms) * .7) var(--suave);
+  transform-origin:top center;
+}
+.plegado > .dentro{ transform:translateY(-10px) scale(.97); opacity:0; }
+
+/* la cabecera es el interruptor: grande, con flecha que gira */
+.cab-plegable{
+  cursor:pointer; user-select:none; -webkit-user-select:none;
+  touch-action:manipulation;
+  transition:transform var(--t-pulsa) var(--suave), box-shadow var(--t-pulsa) var(--suave);
+}
+.cab-plegable:active{ transform:translateY(3px); }
+.cab-plegable:focus-visible{ outline:4px solid var(--uva); outline-offset:3px; }
+.flecha{
+  margin-left:auto; flex:0 0 auto;
+  width:1.35em; height:1.35em; display:grid; place-items:center;
+  font-size:.85em; line-height:1; color:var(--uva);
+  transition:transform var(--t-plegar,340ms) var(--muelle);
+}
+.cerrada-sec .flecha{ transform:rotate(-90deg); }   /* cerrada: apunta a la derecha */
+
+/* la cuenta se sigue viendo con la seccion cerrada: es su resumen */
+.cab-plegable .cuenta{ margin-left:0; }
 
 /* ---------- estados vacios y cerrados: invitan, no dan pena ---------- */
 /* nadie ha jugado todavia */
@@ -923,7 +961,13 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   display:flex; align-items:center; gap:var(--s2); margin-bottom:var(--s2);
   font-family:"Fredoka","Nunito",system-ui,sans-serif; font-weight:600;
   font-size:clamp(1rem,4vw,1.5rem);
+  /* ahora la cabecera es el interruptor de la seccion: tiene que ser
+     comoda de dar con un dedo de 4 años, no una linea de texto */
+  min-height:60px; padding:var(--s2) var(--s3);
+  border-radius:var(--r-full); background:var(--lienzo);
 }
+/* dentro de la tarjeta blanca del album, el lienzo da el contraste justo */
+.cab-seccion .cuenta{ background:var(--superficie); }
 .cab-seccion .cuenta{
   margin-left:auto; font-family:"Nunito",sans-serif; font-weight:900;
   font-size:clamp(.85rem,3.2vw,1.15rem);
@@ -994,6 +1038,44 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
 .misterio.girando{ animation:voltea .5s var(--suave) forwards; }
 .misterio.apagada{ opacity:.35; transform:scale(.88); }
 @keyframes voltea{ 0%{ transform:rotateY(0) } 50%{ transform:rotateY(90deg) scale(1.1) } 100%{ transform:rotateY(0) } }
+
+/* aviso de cuantas quedan por elegir */
+#cofreAviso{
+  margin:0 0 var(--s2); font-weight:900; color:var(--tinta);
+  font-size:clamp(1rem,4vw,1.4rem);
+  animation:entrarCarta .4s var(--muelle);
+}
+
+/* La carta ya se voltea con la animacion "voltea" que habia. Aprovechamos
+   ese giro: a mitad, cuando esta de canto, se cambia la cara. Sale mas
+   barato que un flip 3D con backface, que en tablets flojas va a saltos. */
+.misterio .cara-atras, .misterio .cara-frente{
+  display:flex; align-items:center; justify-content:center;
+  width:100%; height:100%; border-radius:inherit;
+}
+.misterio .cara-frente{ display:none; font-size:clamp(1.8rem,9vmin,3.4rem); }
+.misterio.mostrando .cara-atras { display:none; }
+.misterio.mostrando .cara-frente{ display:flex; background:var(--superficie); }
+.misterio.girando{ box-shadow:0 0 0 6px var(--menta), var(--sombra-2); }
+
+/* los dos premios, uno al lado del otro */
+.premios{
+  display:flex; justify-content:center; align-items:flex-start;
+  gap:clamp(var(--s3),6vw,var(--s6)); flex-wrap:wrap;
+}
+.premio-uno{
+  display:flex; flex-direction:column; align-items:center; gap:var(--s1);
+  animation:entrarCarta .55s var(--muelle) backwards;
+}
+.premio-uno .premioPegatina{
+  font-size:clamp(2.6rem,14vmin,5rem); line-height:1;
+  width:clamp(64px,20vmin,120px); height:clamp(64px,20vmin,120px);
+  display:flex; align-items:center; justify-content:center;
+}
+.premio-uno .premioTexto{
+  font-family:"Fredoka","Nunito",system-ui,sans-serif; font-weight:600;
+  font-size:clamp(.95rem,3.8vw,1.35rem); color:var(--tinta);
+}
 
 #premio{
   display:flex; flex-direction:column; align-items:center; gap:var(--s1);
@@ -1187,6 +1269,24 @@ button{ font-family:inherit; color:inherit; cursor:pointer; border:none; backgro
   #juego, #mini{ padding-bottom:clamp(96px,19vmin,168px); }
 }
 @media (orientation:landscape){
+  /* El cofre paso de 3 cartas a 4 y gano una linea de aviso: en apaisado
+     eso empujaba 🏠 y 🔁 fuera de la pantalla. Aqui se encoge todo lo del
+     cofre a medida de la ALTURA, que es lo que escasea tumbado. */
+  .misterio{
+    width:clamp(52px,13vh,88px); height:clamp(66px,17vh,112px);
+    font-size:clamp(1.2rem,5vh,2.2rem);
+  }
+  .misterios{ gap:clamp(var(--s1),1.5vw,var(--s3)); }
+  #cofreAviso{ margin:0 0 var(--s1); font-size:clamp(.85rem,3.4vh,1.15rem); }
+  #cofre{ font-size:clamp(2.2rem,12vh,4rem); }
+  .premios{ gap:clamp(var(--s2),4vw,var(--s4)); }
+  .premio-uno .premioPegatina{
+    font-size:clamp(1.8rem,9vh,3.2rem);
+    width:clamp(48px,13vh,88px); height:clamp(48px,13vh,88px);
+  }
+  .premio-uno .premioTexto{ font-size:clamp(.8rem,3.2vh,1.1rem); }
+  .lluviaEstrellas{ font-size:clamp(.9rem,3.4vh,1.4rem); }
+
   /* en apaisado hay poca altura: la escena se compacta para que el boton
      de continuar SIEMPRE quepa entero en pantalla */
   #cine{ gap:clamp(2px,1vh,10px); padding-block:clamp(4px,2vh,16px); }
@@ -1961,6 +2061,16 @@ const SONIDOS_TARJETA = {
 };
 
 /* ================================================================
+   ⬇⬇⬇  COFRE SORPRESA  ⬇⬇⬇
+   Al acabar una categoria sale un cofre con cartas boca abajo. El peque
+   elige varias y se lleva una pegatina por cada una.
+   ================================================================ */
+const COFRE = {
+  cartas:  4,    // cuantas cartas boca abajo se enseñan
+  premios: 2     // cuantas puede elegir (y cuantas pegatinas se lleva)
+};
+
+/* ================================================================
    ⬇⬇⬇  CINE DE FIN DE NIVEL  ⬇⬇⬇
    Mini pelicula de 3-5 s al terminar (o abrir) un NIVEL entero.
    Salen los AVATARES de los perfiles de este aparato — nunca la camara
@@ -1998,7 +2108,8 @@ const TRAZO = {
 const MOVIMIENTO = {
   msPantalla:  420,   // cambio de una pantalla a otra
   msContador:  700,   // lo que tarda el marcador en subir contando
-  msSplash:    900    // entrada de Blip en la portada
+  msSplash:    900,   // entrada de Blip en la portada
+  msPlegar:    340    // abrir o cerrar una seccion (niveles y album)
 };
 
 /* Ajustes rapidos del juego */
@@ -2024,8 +2135,10 @@ const $ = (sel) => document.querySelector(sel);
 try{
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){
     MOVIMIENTO.msPantalla = 0;
+    MOVIMIENTO.msPlegar = 0;
   }
   document.documentElement.style.setProperty("--t-pantalla", MOVIMIENTO.msPantalla + "ms");
+  document.documentElement.style.setProperty("--t-plegar", MOVIMIENTO.msPlegar + "ms");
 }catch(e){}
 
 /* ---------- estado en memoria (sin localStorage) ---------- */
@@ -2253,6 +2366,9 @@ let ambiente = null;          // { maestro, nodos... }
 let ambienteApagado = false;  // lo decide el adulto con el boton
 let ambienteAgachado = 0;     // cuantas cosas estan sonando encima
 
+/* Al arrancar todavia no se sabe quien juega, asi que se usa lo ultimo
+   que se eligio en ESTE aparato. En cuanto se entra a un jugador manda su
+   propia preferencia (ver aplicarAmbienteDePerfil). */
 function cargarAjusteAmbiente(){
   try{ ambienteApagado = window.localStorage.getItem(CLAVE_AMBIENTE) === "off"; }
   catch(e){ ambienteApagado = false; }   // sin almacenamiento: suena, y punto
@@ -2432,6 +2548,8 @@ function soltarAmbienteDelTodo(){
 function alternarAmbiente(){
   ambienteApagado = !ambienteApagado;
   guardarAjusteAmbiente();
+  // la eleccion es de quien esta jugando: se guarda en SU caja
+  if (perfilActual){ progreso.ambienteApagado = ambienteApagado; guardarAlbum(); }
   if (ambienteApagado){
     ajustarAmbiente(0.4);
   } else {
@@ -3495,11 +3613,95 @@ function ponerDibujo(el, palabra){
 }
 
 /* ================================================================
+   SECCIONES PLEGABLES — una sola maquinaria para casa y para el album
+   Se guarda que hay abierto POR JUGADOR, dentro de su misma caja de
+   progreso, asi que cada peque se encuentra el album como lo dejo.
+   ================================================================ */
+
+/* que secciones estan abiertas: { "n0":true, "t:animales":false, ... } */
+function seccionAbierta(clave, porDefecto){
+  if (!progreso.secciones || typeof progreso.secciones !== "object") return porDefecto;
+  const v = progreso.secciones[clave];
+  return typeof v === "boolean" ? v : porDefecto;
+}
+function guardarSeccion(clave, abierta){
+  if (!progreso.secciones || typeof progreso.secciones !== "object") progreso.secciones = {};
+  progreso.secciones[clave] = abierta;
+  guardarAlbum();
+}
+
+/* Mide y fija la altura en pixeles. Al terminar de abrir se quita el tope
+   para que la seccion pueda crecer sola si cambia algo dentro. */
+let temposPlegar = new Map();
+
+function aplicarPlegado(caja, abierta, animar){
+  if (!caja) return;
+  const antes = temposPlegar.get(caja);
+  if (antes != null){ cancelar(antes); temposPlegar.delete(caja); }
+
+  caja.classList.toggle("plegado", !abierta);
+  const alto = caja.scrollHeight;
+
+  if (!animar || MOVIMIENTO.msPlegar <= 0){
+    caja.style.maxHeight = abierta ? "none" : "0px";
+    return;
+  }
+  if (abierta){
+    caja.style.maxHeight = alto + "px";
+    // al acabar quitamos el tope: si luego cambia el contenido, no se corta
+    const t = luego(() => { temposPlegar.delete(caja); caja.style.maxHeight = "none"; }, MOVIMIENTO.msPlegar + 40);
+    temposPlegar.set(caja, t);
+  } else {
+    // de "none" a 0 no hay transicion: primero fijamos el alto real
+    caja.style.maxHeight = alto + "px";
+    void caja.offsetHeight;                 // fuerza el reflujo
+    caja.style.maxHeight = "0px";
+  }
+}
+
+/* Convierte una cabecera + su caja en una seccion plegable.
+   Devuelve la caja para poder seguir metiendole cosas. */
+function hacerPlegable(cab, caja, clave, abiertaPorDefecto){
+  const abierta = seccionAbierta(clave, abiertaPorDefecto);
+
+  cab.classList.add("cab-plegable");
+  cab.setAttribute("role", "button");
+  cab.setAttribute("tabindex", "0");
+  cab.classList.toggle("cerrada-sec", !abierta);
+  cab.setAttribute("aria-expanded", abierta ? "true" : "false");
+
+  const flecha = document.createElement("span");
+  flecha.className = "flecha";
+  flecha.setAttribute("aria-hidden", "true");
+  flecha.textContent = "▼";
+  cab.appendChild(flecha);
+
+  caja.classList.add("plegable");
+  aplicarPlegado(caja, abierta, false);
+
+  const alternar = () => {
+    const ahora = !(cab.getAttribute("aria-expanded") === "true");
+    cab.setAttribute("aria-expanded", ahora ? "true" : "false");
+    cab.classList.toggle("cerrada-sec", !ahora);
+    aplicarPlegado(caja, ahora, true);
+    guardarSeccion(clave, ahora);
+    sonidos.toque();
+  };
+  cab.addEventListener("click", alternar);
+  cab.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); alternar(); }
+  });
+  return caja;
+}
+
+/* ================================================================
    NIVELES — que esta abierto y que categorias se han terminado
    ================================================================ */
 const progreso = { completados: {}, desbloqueados: [true, false, false], puntos: 0,
                    // niveles cuyo cine ya se vio: la peli no se repite al volver
-                   celebrados: [] };
+                   celebrados: [],
+                   // que secciones dejo abiertas este jugador (casa y album)
+                   secciones: {} };
 let pendienteDesbloqueo = null;      // nivel recien abierto, para celebrarlo en casa
 
 function nivelDeTema(tema){
@@ -3555,10 +3757,23 @@ function frase(lista, clave){
   return f;
 }
 
+/* En que nivel anda ahora el peque: el mas alto que tiene abierto y
+   todavia no ha terminado. Es el que se deja desplegado por defecto. */
+function nivelEnCurso(){
+  let candidato = 0;
+  for (let i = 0; i < NIVELES.length; i++){
+    if (!progreso.desbloqueados[i]) continue;
+    candidato = i;
+    if (completadosEnNivel(i) < NIVELES[i].temas.length) return i;   // aqui esta trabajando
+  }
+  return candidato;   // todo hecho: se queda en el ultimo abierto
+}
+
 /* pinta los botones de temas del home */
 function pintarHome(){
   const cont = $("#rejillaTemas");
   cont.innerHTML = "";
+  const enCurso = nivelEnCurso();
   NIVELES.forEach((nivel, iNivel) => {
     const abierto = !!progreso.desbloqueados[iNivel];
 
@@ -3574,8 +3789,14 @@ function pintarHome(){
     cab.querySelector(".cuenta").textContent = completadosEnNivel(iNivel) + " / " + nivel.temas.length;
     secc.appendChild(cab);
 
+    // Se despliega solo el nivel en el que anda ahora: los terminados y los
+    // cerrados empiezan recogidos para que la casa quepa de un vistazo.
+    const caja = document.createElement("div");
     const rej = document.createElement("div");
-    rej.className = "rejilla";
+    rej.className = "rejilla dentro";
+    caja.appendChild(rej);
+    secc.appendChild(caja);
+    hacerPlegable(cab, caja, "n" + iNivel, iNivel === enCurso);
     nivel.temas.forEach((tema, i) => {
       const b = document.createElement("button");
       b.className = "tema-btn";
@@ -3599,7 +3820,6 @@ function pintarHome(){
       });
       rej.appendChild(b);
     });
-    secc.appendChild(rej);
     cont.appendChild(secc);
   });
 }
@@ -4579,11 +4799,28 @@ function crearPerfil(nombre, color, silencioso){
 }
 
 /* entra a jugar con un perfil: carga SU progreso */
+/* Pone la musica como la dejo ESTE jugador. Un jugador nuevo la tiene
+   encendida aunque otro la hubiera apagado: cada peque empieza limpio. */
+function aplicarAmbienteDePerfil(){
+  const quiere = !!progreso.ambienteApagado;
+  if (quiere === ambienteApagado){ pintarBotonSonido(); return; }
+  ambienteApagado = quiere;
+  guardarAjusteAmbiente();       // el aparato recuerda lo ultimo, para el arranque
+  if (ambienteApagado){
+    ajustarAmbiente(0.4);
+  } else {
+    if (!ambiente) crearAmbiente();
+    ajustarAmbiente(AUDIO.ambiente.segFundido * 0.6);
+  }
+  pintarBotonSonido();
+}
+
 function entrarPerfil(id){
   const p = perfiles.find(x => x.id === id);
   if (!p) return false;
   perfilActual = p;
   cargarAlbum();                 // lee la caja de este perfil
+  aplicarAmbienteDePerfil();     // ...y su preferencia de musica
   guardarPerfiles();             // recuerda cual fue el ultimo
   pintarContadorAlbum();
   pintarAvatarPerfil();
@@ -4764,6 +5001,8 @@ function cargarAlbum(){
   progreso.puntos = 0;
   progreso.desbloqueados = [true, false, false];
   progreso.celebrados = [];
+  progreso.secciones = {};
+  progreso.ambienteApagado = false;   // jugador nuevo: la musica empieza sonando
   if (!perfilActual || !almacenDisponible){ recalcularDesbloqueos(); return; }
   try{
     const bruto = window.localStorage.getItem(claveDePerfil(perfilActual.id));
@@ -4779,6 +5018,9 @@ function cargarAlbum(){
       progreso.completados = datos.completados;
     }
     if (datos && Array.isArray(datos.celebrados)) progreso.celebrados = datos.celebrados;
+    if (datos && datos.secciones && typeof datos.secciones === "object") progreso.secciones = datos.secciones;
+    // solo si el jugador YA habia elegido: si no, se queda encendida
+    if (datos && typeof datos.ambienteApagado === "boolean") progreso.ambienteApagado = datos.ambienteApagado;
     recalcularDesbloqueos();
   }catch(e){
     album.ganadas = {};          // guardado corrupto: se empieza de cero, sin drama
@@ -4796,6 +5038,8 @@ function guardarAlbum(){
       completados: progreso.completados,
       desbloqueados: progreso.desbloqueados,
       celebrados: progreso.celebrados || [],
+      secciones: progreso.secciones || {},
+      ambienteApagado: !!progreso.ambienteApagado,
       puntos: progreso.puntos || 0
     }));
     return true;
@@ -4822,6 +5066,7 @@ function pintarContadorAlbum(){
 function pintarAlbum(){
   const cont = $("#listaAlbum");
   cont.innerHTML = "";
+  let primera = true;   // la primera categoria abierta, el resto recogidas
 
   // album a estrenar: mejor una invitacion que una pared de siluetas
   if (pegatinasGanadas() === 0){
@@ -4855,8 +5100,15 @@ function pintarAlbum(){
     cab.querySelector(".cuenta").textContent = ganadas + " / " + tema.palabras.length;
     sec.appendChild(cab);
 
+    // Solo la primera categoria queda abierta: si no, el album es un muro
+    // de interrogantes y hay que hacer scroll un buen rato para ver nada.
+    const caja = document.createElement("div");
     const rej = document.createElement("div");
-    rej.className = "rejilla-pegatinas";
+    rej.className = "rejilla-pegatinas dentro";
+    caja.appendChild(rej);
+    sec.appendChild(caja);
+    hacerPlegable(cab, caja, "t:" + tema.id, primera);
+    primera = false;
     tema.palabras.forEach(p => {
       const id = idPegatina(tema, p);
       const reg = album.ganadas[id];
@@ -4868,7 +5120,6 @@ function pintarAlbum(){
       b.addEventListener("click", () => tocarPegatina(b, tema, p, !!reg));
       rej.appendChild(b);
     });
-    sec.appendChild(rej);
     cont.appendChild(sec);
     });
   });
@@ -4909,17 +5160,34 @@ let cofreActivo = null;
 /* elige premio: primero las que le faltan; si ya las tiene todas,
    sale repetida y se convierte en brillante (nunca se queda en nada) */
 function elegirPremio(tema){
+  return elegirPremios(tema, 1)[0];
+}
+
+/* Saca "cuantos" premios distintos del tema recien terminado.
+   Manda lo que aun no tiene; cuando ya no quedan nuevas, se rellena con
+   repetidas que se vuelven brillantes, para que el cofre nunca se sienta
+   vacio ni entregue dos veces la misma pegatina en la misma tanda. */
+function elegirPremios(tema, cuantos){
+  const n = Math.max(1, cuantos || 1);
   const todas = tema.palabras.map(p => ({ p: p, id: idPegatina(tema, p) }));
-  const faltan = todas.filter(x => !album.ganadas[x.id]);
-  const elegida = alAzar(faltan.length ? faltan : todas);
-  const repetida = faltan.length === 0;
-  const reg = album.ganadas[elegida.id] || { veces: 0, brillante: false };
-  reg.veces++;
-  if (repetida) reg.brillante = true;
-  album.ganadas[elegida.id] = reg;
+  const nuevas = todas.filter(x => !album.ganadas[x.id]);
+  const repes  = todas.filter(x => album.ganadas[x.id]);
+  const bolsa = barajar(nuevas.slice()).concat(barajar(repes.slice()));
+
+  const premios = [];
+  for (let i = 0; i < n && i < bolsa.length; i++){
+    const el = bolsa[i];
+    // repetida = ya la tenia ANTES de esta tanda
+    const repetida = !!album.ganadas[el.id];
+    const reg = album.ganadas[el.id] || { veces: 0, brillante: false };
+    reg.veces++;
+    if (repetida) reg.brillante = true;
+    album.ganadas[el.id] = reg;
+    premios.push({ palabra: el.p, id: el.id, brillante: !!reg.brillante, repetida: repetida });
+  }
   guardarAlbum();
   pintarContadorAlbum();
-  return { palabra: elegida.p, id: elegida.id, brillante: !!reg.brillante, repetida: repetida };
+  return premios;
 }
 
 function montarCofre(tema){
@@ -4944,6 +5212,12 @@ function montarCofre(tema){
 function abrirCofre(){
   if (!cofreActivo || cofreActivo.fase !== "cerrado") return;
   cofreActivo.fase = "eligiendo";
+  cofreActivo.elegidas = 0;
+  // Los premios se deciden AQUI, todos de golpe: asi se garantiza que las
+  // dos pegatinas son distintas y que se prefiere lo que aun no se tiene.
+  cofreActivo.premios = elegirPremios(cofreActivo.tema, COFRE.premios);
+  cofreActivo.entregados = [];
+
   const z = $("#cofreZona"), c = $("#cofre");
   if (c) c.classList.add("abierto");
   sonidos.toque();
@@ -4951,60 +5225,124 @@ function abrirCofre(){
   luego(() => {
     if (!cofreActivo || cofreActivo.fase !== "eligiendo") return;
     z.innerHTML = "";
+
+    const aviso = document.createElement("p");
+    aviso.id = "cofreAviso";
+    aviso.textContent = "Pick " + COFRE.premios + "!";
+    z.appendChild(aviso);
+
     const fila = document.createElement("div");
     fila.className = "misterios";
-    for (let i = 0; i < 3; i++){
+    for (let i = 0; i < COFRE.cartas; i++){
       const m = document.createElement("button");
       m.className = "misterio";
-      m.textContent = "?";
+      m.innerHTML = '<span class="cara-atras">?</span><span class="cara-frente"></span>';
       m.style.animationDelay = (i * 90) + "ms";
       m.setAttribute("aria-label", "Sorpresa " + (i + 1));
       m.addEventListener("click", () => elegirCarta(m));
       fila.appendChild(m);
     }
     z.appendChild(fila);
-    speakPhrase("Pick one!", "misterios");
-    // tampoco se queda encallado eligiendo
-    luego(() => {
-      if (cofreActivo && cofreActivo.fase === "eligiendo"){
-        const cartas = z.querySelectorAll(".misterio");
-        if (cartas.length) elegirCarta(cartas[(Math.random() * cartas.length) | 0]);
-      }
-    }, MS_RESCATE_COFRE);
+    speakPhrase("Pick two!", "misterios");
+    pintarAvisoCofre();
+
+    // tampoco se queda encallado eligiendo: si no toca nada, elige el juego
+    luego(rescatarCofre, MS_RESCATE_COFRE);
   }, 480);
+}
+
+/* si el peque no elige, elegimos por el (nunca se queda mirando) */
+function rescatarCofre(){
+  if (!cofreActivo || cofreActivo.fase !== "eligiendo") return;
+  const z = $("#cofreZona");
+  const libres = z ? z.querySelectorAll(".misterio:not(.girando)") : [];
+  if (libres.length) elegirCarta(libres[(Math.random() * libres.length) | 0]);
+  if (cofreActivo && cofreActivo.fase === "eligiendo") luego(rescatarCofre, 1800);
+}
+
+function pintarAvisoCofre(){
+  const a = $("#cofreAviso");
+  if (!a || !cofreActivo) return;
+  const faltan = COFRE.premios - cofreActivo.elegidas;
+  a.textContent = faltan <= 0 ? "🎉" : (cofreActivo.elegidas === 0
+    ? "Pick " + COFRE.premios + "!"
+    : "One more!");
 }
 
 function elegirCarta(carta){
   if (!cofreActivo || cofreActivo.fase !== "eligiendo") return;
-  cofreActivo.fase = "premiando";
-  const z = $("#cofreZona");
-  z.querySelectorAll(".misterio").forEach(m => { if (m !== carta) m.classList.add("apagada"); });
-  carta.classList.add("girando");
+  if (carta.classList.contains("girando")) return;      // esa ya la eligio
 
-  const premio = elegirPremio(cofreActivo.tema);
+  const premio = cofreActivo.premios[cofreActivo.elegidas];
+  cofreActivo.elegidas++;
+  if (premio) cofreActivo.entregados.push(premio);
+
+  // la carta se gira y enseña SU pegatina, ahi mismo
+  carta.classList.add("girando");
+  const frente = carta.querySelector(".cara-frente");
+  if (frente && premio){
+    ponerDibujo(frente, premio.palabra);
+    if (premio.brillante) frente.classList.add("brillante");
+  }
+  // la cara se cambia justo cuando la carta esta de canto: parece una sola
+  // pieza que se da la vuelta
+  luego(() => carta.classList.add("mostrando"), 250);
+  sonidos.toque();
+
+  const quedan = COFRE.premios - cofreActivo.elegidas;
+  if (quedan > 0){
+    // ...y se pide la siguiente, con pista visual y voz
+    pintarAvisoCofre();
+    ponerBlip("hablando", 1200);
+    callar();
+    speakPhrase("One more!", "misterios");
+    return;
+  }
+
+  // ya estan las dos: se apagan las que no eligio y viene la fiesta
+  cofreActivo.fase = "premiando";
+  pintarAvisoCofre();
+  const z = $("#cofreZona");
+  z.querySelectorAll(".misterio:not(.girando)").forEach(m => m.classList.add("apagada"));
 
   luego(() => {
     if (!cofreActivo) return;
+    const premios = cofreActivo.entregados;
     z.innerHTML = "";
     const caja = document.createElement("div");
     caja.id = "premio";
-    caja.innerHTML = '<div id="premioPegatina"></div><div id="premioTexto"></div>';
-    const peg = caja.querySelector("#premioPegatina");
-    ponerDibujo(peg, premio.palabra);
-    if (premio.brillante) peg.classList.add("brillante");
-    caja.querySelector("#premioTexto").textContent =
-      (premio.repetida ? "⭐ " : "") + premio.palabra.en;
+    const fila = document.createElement("div");
+    fila.className = "premios";
+    const pegs = [];
+    premios.forEach((pr, i) => {
+      const uno = document.createElement("div");
+      uno.className = "premio-uno";
+      uno.style.animationDelay = (i * 220) + "ms";
+      const peg = document.createElement("div");
+      peg.className = "premioPegatina";
+      ponerDibujo(peg, pr.palabra);
+      if (pr.brillante) peg.classList.add("brillante");
+      const txt = document.createElement("div");
+      txt.className = "premioTexto";
+      txt.textContent = (pr.repetida ? "⭐ " : "") + pr.palabra.en;
+      uno.appendChild(peg); uno.appendChild(txt);
+      fila.appendChild(uno);
+      pegs.push(peg);
+    });
+    caja.appendChild(fila);
     z.appendChild(caja);
 
     sonidos.bien();
-    lanzarConfeti(26);
-    ponerBlip("feliz", 3000);
-    // dice la palabra de la pegatina: mas practica de escucha
-    speakWord(premio.palabra.en, "premio");
+    lanzarConfeti(34);
+    ponerBlip("feliz", 3400);
+    // dice las dos palabras, una detras de otra: mas practica de escucha
+    premios.forEach(pr => speakWord(pr.palabra.en, "premio"));
 
-    // y vuela al album
-    luego(() => volarAlAlbum(premio.palabra, peg), 700);
-  }, 420);
+    // y las dos vuelan al album, escalonadas
+    premios.forEach((pr, i) => {
+      luego(() => volarAlAlbum(pr.palabra, pegs[i]), 700 + i * 260);
+    });
+  }, 480);
 }
 
 /* la pegatina sale volando hacia la esquina donde vive el album */
@@ -5024,12 +5362,10 @@ function volarAlAlbum(palabra, desde){
     v.style.opacity = "0";
   });
   luego(() => { if (v.parentNode) v.parentNode.removeChild(v); }, 950);
-  const t = $("#premioTexto");
-  if (t) luego(() => { if (t.parentNode) t.textContent = "📖 +1"; }, 780);
 }
 
 function cerrarCofre(){
-  cofreActivo = null;
+  cofreActivo = null;      // corta tambien los rescates: comprueban esto
   const z = document.getElementById("cofreZona");
   if (z) z.innerHTML = "";
 }
@@ -5062,6 +5398,7 @@ function borrarAlbum(){
   progreso.completados = {};
   progreso.desbloqueados = [true, false, false];
   progreso.celebrados = [];
+  progreso.secciones = {};
   pendienteDesbloqueo = null;
   pendienteCine = null;
   progreso.puntos = 0;
@@ -5232,13 +5569,18 @@ window.__juego = {
   get ambienteOsciladores(){ return ambiente ? ambiente.osc.length : 0; },
   get desbloqueoPendiente(){ return pendienteDesbloqueo; },
   CINE, reproducirCine, cerrarCine, resaltarNivel, irACasa, MOVIMIENTO, contarHasta,
+  hacerPlegable, aplicarPlegado, seccionAbierta, guardarSeccion, nivelEnCurso,
+  aplicarAmbienteDePerfil,
   pintarContadorAlbum,
   get cinePendiente(){ return pendienteCine; },
   set cinePendiente(v){ pendienteCine = v; },
-  montarCofre, abrirCofre, elegirPremio, borrarAlbum, CLAVE_ALBUM,
+  montarCofre, abrirCofre, elegirPremio, elegirPremios, COFRE, elegirCarta,
+  borrarAlbum, CLAVE_ALBUM,
   pegatinasGanadas, totalPegatinas,
   get almacenOk(){ return almacenDisponible; },
-  get cofre(){ return cofreActivo ? { tema: cofreActivo.tema.id, fase: cofreActivo.fase } : null; },
+  get cofre(){ return cofreActivo ? { tema: cofreActivo.tema.id, fase: cofreActivo.fase,
+    elegidas: cofreActivo.elegidas || 0,
+    entregados: (cofreActivo.entregados || []).map(p => p.palabra.en) } : null; },
   get mini(){ return miniActivo ? { tipo: miniActivo.tipo, palabra: miniActivo.palabra.en, ganado: miniActivo.ganado } : null; },
   get temporizadoresVivos(){ return temporizadores.size; },
   registroVoz,
