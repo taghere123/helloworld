@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  /* TODO: reemplazar con hex oficial de marca Interseguro */
+  --color-brand: #3537a4;
+  --color-brand-dark: #262873;
+  --color-brand-light: #eceefa;
+  --color-brand-soft: #f5f6fd;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --radius-card: 12px;
+}
+
+body {
+  background-color: #f4f5f7;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Slider (range input) — estilo plano, sin sombras pesadas */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-brand-light);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--color-brand);
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--color-brand);
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--color-brand);
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--color-brand);
+  cursor: pointer;
+}
